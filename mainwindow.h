@@ -25,6 +25,8 @@ private slots:
 
     void on_addButton_clicked();
 
+    void on_descriptionButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
