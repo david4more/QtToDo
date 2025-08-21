@@ -25,58 +25,104 @@ public:
 
 private slots:
 
-    void on_newTaskButton_clicked();
+    void onNewTaskButton();
 
-    void on_addTaskButton_clicked();
+    void onAddTaskButton();
 
-    void on_taskDescriptionButton_clicked();
 
 private:
     Ui::MainWindow *ui;
 
-    void updateDefaultView(const QDate &date);
+    struct Task
+    {
+        QString name;
+        QString tags;
+        QString priority;
+        QDateTime time;
+        QString recurrence;
+        QColor color;
+        QString description;
+        bool completion;
 
-    enum State { default_view, new_task } state = State::default_view;
-    void changeState(State state);
+        Task (QString name, QString tags, QString priority, QDateTime time, QString recurrence, QColor color, QString description, bool completion)
+            : name(name), tags(tags), priority(priority), time(time), recurrence(recurrence), color(color), description(description), completion(completion) {};
 
+        Task(const QJsonObject &obj) {
+            name = obj["name"].toString();
+            tags = obj["tags"].toString();
+            priority = obj["priority"].toString();
+            time = QDateTime::fromString(obj["time"].toString(), Qt::ISODate);
+            recurrence = obj["recurrence"].toString();
+            color = QColor(obj["color"].toString());
+            description = obj["description"].toString();
+            completion = obj["completion"].toBool();
+        }
+
+        QJsonObject toJson() const {
+            QJsonObject obj;
+            obj["name"] = name;
+            obj["tags"] = tags;
+            obj["priority"] = priority;
+            obj["time"] = time.toString(Qt::ISODate);
+            obj["recurrence"] = recurrence;
+            obj["color"] = color.name();
+            obj["description"] = description;
+            obj["completion"] = completion;
+
+            return obj;
+        }
+
+        void toJson(QJsonObject &obj) {
+            obj["name"] = name;
+            obj["tags"] = tags;
+            obj["priority"] = priority;
+            obj["time"] = time.toString(Qt::ISODate);
+            obj["recurrence"] = recurrence;
+            obj["color"] = color.name();
+            obj["description"] = description;
+            obj["completion"] = completion;
+        }
+
+        QStringList tagList() const {
+            return tags.split(",", Qt::SkipEmptyParts);
+        }
+    };
+    QVector<Task> tasks;
     const QString errorStyle = "background-color: #5a1f1f;";
-    void clearStyle(QWidget *widget);
+    enum State { default_view, new_task } state = State::default_view;
+    QString defaultFileName = "tasks.json";
+    QDate pickedDate;
 
+    void updateDefaultView(const QDate &date);
+    void changeState(State state);
     void clearInputWindow();
     bool validateInputs();
 
-    QString defaultFileName = "tasks.json";
-    struct Task
-    {
-        Task(QString name, QDateTime time, QColor color, QDateTime deadline, QString description)
-            : name(name), time(time), color(color), deadline(deadline), description(description) { };
-        Task(){};
-
-        void writeToJson(QJsonObject &obj) const
-        {
-            obj["name"] = name;
-            obj["time"] = time.toString(Qt::ISODate);
-            obj["color"] = color.name();
-            obj["deadline"] = deadline.toString(Qt::ISODate);
-            obj["description"] = description;
-        }
-
-        static Task fromJson(const QJsonObject &obj) {
-            Task t;
-            t.name = obj["name"].toString();
-            t.time = QDateTime::fromString(obj["time"].toString(), Qt::ISODate);
-            t.color = QColor(obj["color"].toString());
-            t.deadline = QDateTime::fromString(obj["deadline"].toString(), Qt::ISODate);
-            t.description = obj["description"].toString();
-            return t;
-        }
-
-        QString name;
-        QDateTime time;
-        QColor color;
-        QDateTime deadline;
-        QString description;
-    };
-    QVector<Task> tasks;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #endif // MAINWINDOW_H

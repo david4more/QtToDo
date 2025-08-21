@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
-                                   MainWindow::~MainWindow()
+MainWindow::~MainWindow()
 {
     delete ui;
 }
@@ -12,9 +12,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->stackedWidget->setCurrentIndex(0);
-    ui->taskDescriptionEdit->hide();
-    ui->todayLabel->setText(QDate::currentDate().toString("dddd, d MMMM") + ": Today's tasks");
+    connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
+    connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
+
+    ui->todayGroup->setTitle(QDate::currentDate().toString("dddd, d MMMM") + ": Today's tasks");
 
     QFile file(defaultFileName);
     if (file.open(QIODevice::ReadOnly))
@@ -22,54 +23,32 @@ MainWindow::MainWindow(QWidget *parent)
         QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
         file.close();
 
-        if (!doc.isArray())
-            return;
-
         QJsonArray arr = doc.array();
         for (const QJsonValue &val : arr)
-            tasks.append(Task::fromJson(val.toObject()));
+            tasks.append(Task(val.toObject()));
     }
-    updateDefaultView(QDate::currentDate());
+    pickedDate = QDate::currentDate();
+
+    changeState(State::default_view);
 }
 
-void MainWindow::updateDefaultView(const QDate &date)
+void MainWindow::onNewTaskButton()
 {
-    for (const Task &task : tasks)
-    {
-        if (task.time.date() != date)
-            continue;
-
-        // HERE SHOULD BE THE CODE
-    }
-
-    ui->taskNameLabel->setText(tasks.back().name);
-    ui->taskTimeLabel->setText(tasks.back().time.toString());
-}
-
-void MainWindow::on_newTaskButton_clicked()
-{
-    if (state == State::default_view) {
-        ui->newTaskButton->setText("Cancel");
-        ui->taskTimeEdit->setDateTime(QDateTime::currentDateTime());
-        changeState(State::new_task);
-    }
-    else if (state == State::new_task) {
-        ui->newTaskButton->setText("New Task");
-
-        clearInputWindow();
-        changeState(State::default_view);
+    switch (state) {
+    case State::default_view:
+        changeState(State::new_task); break;
+    case State::new_task:
+        changeState(State::default_view); break;
     }
 }
 
-void MainWindow::on_addTaskButton_clicked()
+void MainWindow::onAddTaskButton()
 {
     if (ui->taskNameEdit->text().trimmed().isEmpty())
     {
         ui->taskNameEdit->setStyleSheet(errorStyle);
         return;
     }
-    clearStyle(ui->taskNameEdit);
-
 
     QFile file(defaultFileName);
     if (!file.open(QIODevice::ReadWrite)) {
@@ -91,51 +70,68 @@ void MainWindow::on_addTaskButton_clicked()
         }
     }
 
-    Task task(ui->taskNameEdit->text(),
-              ui->taskTimeEdit->dateTime(),
-              Qt::blue,
-              QDateTime(),
-              (ui->taskDescriptionEdit->isVisible() ? ui->taskDescriptionEdit->toPlainText() : ""));
-    QJsonObject obj;
-    task.writeToJson(obj);
-    tasksArray.append(obj);
+    Task task(
+        ui->taskNameEdit->text(),
+        "",
+        "",
+        QDateTime(ui->taskDateEdit->date(), ui->taskTimeEdit->time()),
+        "",
+        Qt::blue,
+        ui->taskDescriptionEdit->toPlainText(),
+        false);
+
+    tasks.append(task);
+    tasksArray.append(task.toJson());
 
     file.resize(0);
     doc = QJsonDocument(tasksArray);
     file.write(doc.toJson());
     file.close();
 
-    ui->newTaskButton->setText("New Task");
-    clearInputWindow();
+
     changeState(State::default_view);
+}
+
+void MainWindow::updateDefaultView(const QDate &date)
+{
+    for (const Task &task : tasks)
+    {
+        if (task.time.date() != date)
+            continue;
+
+        // HERE SHOULD BE THE CODE
+    }
+
+    ui->taskNameLabel->setText(tasks.back().name);
+    ui->taskTimeLabel->setText(tasks.back().time.toString());
 }
 
 void MainWindow::clearInputWindow()
 {
-    clearStyle(ui->taskNameEdit);
+    ui->taskNameEdit->setStyleSheet("");
     ui->taskNameEdit->clear();
+    ui->taskDescriptionEdit->clear();
 
-    clearStyle(ui->taskTimeEdit);
-    ui->taskTimeEdit->setTime(QTime(0,0));
-
-    ui->taskDescriptionEdit->hide();
-    ui->taskDescriptionButton->show();
-}
-
-void MainWindow::on_taskDescriptionButton_clicked()
-{
-    ui->taskDescriptionEdit->show();
-    ui->taskDescriptionButton->hide();
-}
-
-void MainWindow::clearStyle(QWidget *widget)
-{
-    widget->setStyleSheet("");
+    ui->taskDateEdit->setDate(QDate::currentDate());
+    ui->taskTimeEdit->setTime(QTime::currentTime());
 }
 
 void MainWindow::changeState(State state)
 {
     this->state = state;
+
+    switch (state)
+    {
+    case State::new_task:
+        clearInputWindow();
+        ui->newTaskButton->setText("Cancel");
+        break;
+    case State::default_view:
+        updateDefaultView(pickedDate);
+        ui->newTaskButton->setText("New Task");
+        break;
+    }
+
     ui->stackedWidget->setCurrentIndex(state);
 }
 
