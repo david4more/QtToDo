@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
+#include "taskwidget.h"
 
 MainWindow::~MainWindow()
 {
@@ -94,16 +95,26 @@ void MainWindow::onAddTaskButton()
 
 void MainWindow::updateDefaultView(const QDate &date)
 {
+    QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidget->layout());
+
+    QLayoutItem *child;
+    while ((child = layout->takeAt(0)) != nullptr) {
+        if (QWidget *w = child->widget()) {
+            w->deleteLater();
+        }
+        delete child;
+    }
+
     for (const Task &task : tasks)
     {
         if (task.time.date() != date)
-            continue;
+            ;
 
-        // HERE SHOULD BE THE CODE
+        TaskWidget *widget = new TaskWidget(ui->scrollAreaWidget);
+        widget->setTask(task);
+        layout->addWidget(widget);
     }
-
-    ui->taskNameLabel->setText(tasks.back().name);
-    ui->taskTimeLabel->setText(tasks.back().time.toString());
+    layout->addStretch();
 }
 
 void MainWindow::clearInputWindow()
