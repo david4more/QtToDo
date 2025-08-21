@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -33,6 +34,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
+    void updateDefaultView(const QDate &date);
+
     enum State { default_view, new_task } state = State::default_view;
     void changeState(State state);
 
@@ -52,9 +55,9 @@ private:
         void writeToJson(QJsonObject &obj) const
         {
             obj["name"] = name;
-            obj["time"] = time.toString();
+            obj["time"] = time.toString(Qt::ISODate);
             obj["color"] = color.name();
-            obj["deadline"] = deadline.toString();
+            obj["deadline"] = deadline.toString(Qt::ISODate);
             obj["description"] = description;
         }
 
