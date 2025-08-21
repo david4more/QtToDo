@@ -103,6 +103,7 @@ void MainWindow::onAddTaskButton()
 void MainWindow::updateDefaultView()
 {
     QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidget->layout());
+    layout->setAlignment(Qt::AlignTop);
 
     QLayoutItem *child;
     while ((child = layout->takeAt(0)) != nullptr) {
@@ -117,10 +118,13 @@ void MainWindow::updateDefaultView()
         if (task.time.date() != pickedDate)
             continue;
 
-        TaskWidget *widget = new TaskWidget(ui->scrollAreaWidget);
+        TaskWidget *widget = new TaskWidget();
         widget->setTask(task);
         layout->addWidget(widget);
     }
+
+    layout->invalidate();
+    layout->activate();
 }
 
 void MainWindow::clearInputWindow()

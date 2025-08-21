@@ -19,7 +19,7 @@ void TaskWidget::setTask(const Task &task)
     ui->tagsLabel->setText(task.tags);
     ui->timeLabel->setText(task.time.time().toString());
     ui->completionBox->setCheckState(task.completion ? Qt::Checked : Qt::Unchecked);
-    ui->line->setStyleSheet(QString("background-color: %1").arg((task.priority == "Low") ? "green" : (task.priority == "High") ? "red" : "yellow"));
+    ui->line->setStyleSheet(QString("border-radius: 2px;background-color: %1").arg((task.priority == "Low") ? "green" : (task.priority == "High") ? "red" : "yellow"));
     color = task.color;
 
     // fill with color here
