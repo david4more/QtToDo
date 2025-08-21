@@ -26,7 +26,7 @@
    <item>
     <widget class="QWidget" name="containerWidget" native="true">
      <property name="styleSheet">
-      <string notr="true">QWidget#containerWidget {border: 2px dashed #ffd6d6; border-radius: 12px;}</string>
+      <string notr="true">QWidget#containerWidget {border: 2px dashed; border-radius: 6px;}</string>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>

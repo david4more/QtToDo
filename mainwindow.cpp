@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
     connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
+    connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
 
     ui->todayGroup->setTitle(QDate::currentDate().toString("dddd, d MMMM") + ": Today's tasks");
 
@@ -31,6 +32,12 @@ MainWindow::MainWindow(QWidget *parent)
     pickedDate = QDate::currentDate();
 
     changeState(State::default_view);
+}
+
+void MainWindow::onDateClick(const QDate &date)
+{
+    pickedDate = date;
+    updateDefaultView();
 }
 
 void MainWindow::onNewTaskButton()
@@ -93,7 +100,7 @@ void MainWindow::onAddTaskButton()
     changeState(State::default_view);
 }
 
-void MainWindow::updateDefaultView(const QDate &date)
+void MainWindow::updateDefaultView()
 {
     QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidget->layout());
 
@@ -107,14 +114,13 @@ void MainWindow::updateDefaultView(const QDate &date)
 
     for (const Task &task : tasks)
     {
-        if (task.time.date() != date)
-            ;
+        if (task.time.date() != pickedDate)
+            continue;
 
         TaskWidget *widget = new TaskWidget(ui->scrollAreaWidget);
         widget->setTask(task);
         layout->addWidget(widget);
     }
-    layout->addStretch();
 }
 
 void MainWindow::clearInputWindow()
@@ -138,7 +144,7 @@ void MainWindow::changeState(State state)
         ui->newTaskButton->setText("Cancel");
         break;
     case State::default_view:
-        updateDefaultView(pickedDate);
+        updateDefaultView();
         ui->newTaskButton->setText("New Task");
         break;
     }

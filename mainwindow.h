@@ -30,8 +30,8 @@ public:
 private slots:
 
     void onNewTaskButton();
-
     void onAddTaskButton();
+    void onDateClick(const QDate &date);
 
 private:
     Ui::MainWindow *ui;
@@ -42,7 +42,7 @@ private:
     QString defaultFileName = "tasks.json";
     QDate pickedDate;
 
-    void updateDefaultView(const QDate &date);
+    void updateDefaultView();
     void clearInputWindow();
     void changeState(State state);
 
