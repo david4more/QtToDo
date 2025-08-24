@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "widgets/taskwidget.h"
+#include "TaskWidget/taskwidget.h"
 #include "Task.h"
 #include "resourses.h"
 
