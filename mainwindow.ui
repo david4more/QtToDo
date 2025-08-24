@@ -34,17 +34,54 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QCalendarWidget" name="calendarWidget">
+        <widget class="QGroupBox" name="groupBox">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="styleSheet">
-          <string notr="true">QCalendarWidget QTableView {
-    background: transparent;
-    border: none;
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>180</height>
+          </size>
+         </property>
+         <property name="title">
+          <string/>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <item>
+           <widget class="QCalendarWidget" name="calendarWidget">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QCalendarWidget QToolButton {
+	color: #eeeeee;
+}
+
+QCalendarWidget QTableView {
+	background: transparent;
+	border: none;
 }
 
 QCalendarWidget QHeaderView {
@@ -52,71 +89,94 @@ QCalendarWidget QHeaderView {
     border: none;
 }
 
-QCalendarWidget QWidget#qt_calendar_navigationbar {
-    background: transparent;
-    border: none;
-}
-
-QCalendarWidget QToolButton {
+#qt_calendar_navigationbar {
     background: transparent;
     border: none;
 }
 </string>
-         </property>
-         <property name="firstDayOfWeek">
-          <enum>Qt::DayOfWeek::Monday</enum>
-         </property>
-         <property name="gridVisible">
-          <bool>false</bool>
-         </property>
-         <property name="selectionMode">
-          <enum>QCalendarWidget::SelectionMode::SingleSelection</enum>
-         </property>
-         <property name="verticalHeaderFormat">
-          <enum>QCalendarWidget::VerticalHeaderFormat::NoVerticalHeader</enum>
-         </property>
-         <property name="navigationBarVisible">
-          <bool>true</bool>
-         </property>
-         <property name="dateEditEnabled">
-          <bool>true</bool>
-         </property>
+            </property>
+            <property name="firstDayOfWeek">
+             <enum>Qt::DayOfWeek::Monday</enum>
+            </property>
+            <property name="gridVisible">
+             <bool>false</bool>
+            </property>
+            <property name="selectionMode">
+             <enum>QCalendarWidget::SelectionMode::SingleSelection</enum>
+            </property>
+            <property name="verticalHeaderFormat">
+             <enum>QCalendarWidget::VerticalHeaderFormat::NoVerticalHeader</enum>
+            </property>
+            <property name="navigationBarVisible">
+             <bool>true</bool>
+            </property>
+            <property name="dateEditEnabled">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
         <widget class="QGroupBox" name="todayGroup">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
          <property name="title">
-          <string>GroupBox</string>
+          <string>Sunday, August 24th: tasks</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_4">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QTextEdit" name="textEdit">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>80</height>
-             </size>
-            </property>
-            <property name="html">
-             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;ToDo: &amp;quot;next 7 days&amp;quot; button&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-            </property>
-           </widget>
+           <widget class="QListWidget" name="tasksListWidget"/>
           </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Deadlines</string>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+         <property name="checkable">
+          <bool>false</bool>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
-           <widget class="QWidget" name="widget_2" native="true"/>
+           <widget class="QListWidget" name="deadlinesListWidget"/>
           </item>
          </layout>
         </widget>
@@ -154,7 +214,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>459</width>
+             <width>453</width>
              <height>562</height>
             </rect>
            </property>
@@ -254,16 +314,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="taskNameEdit">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_4">
             <property name="text">
@@ -286,15 +336,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QComboBox" name="priorityBox">
+           <widget class="QComboBox" name="taskPriorityBox">
             <property name="currentText">
              <string>Default</string>
             </property>
-            <item>
-             <property name="text">
-              <string>High</string>
-             </property>
-            </item>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
             <item>
              <property name="text">
               <string>Default</string>
@@ -303,6 +351,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
             <item>
              <property name="text">
               <string>Low</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>High</string>
              </property>
             </item>
            </widget>
@@ -317,10 +370,15 @@ li.checked::marker { content: &quot;\2612&quot;; }
           <item row="3" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
-             <widget class="QComboBox" name="comboBox">
+             <widget class="QComboBox" name="taskTypeBox">
               <property name="currentIndex">
-               <number>2</number>
+               <number>0</number>
               </property>
+              <item>
+               <property name="text">
+                <string>Default</string>
+               </property>
+              </item>
               <item>
                <property name="text">
                 <string>Due time</string>
@@ -329,11 +387,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
               <item>
                <property name="text">
                 <string>Deadline</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Default</string>
                </property>
               </item>
              </widget>
@@ -354,10 +407,18 @@ li.checked::marker { content: &quot;\2612&quot;; }
            </widget>
           </item>
           <item row="4" column="1">
-           <widget class="QComboBox" name="comboBox_3">
+           <widget class="QComboBox" name="taskRecurrenceBox">
             <property name="currentText">
              <string>None</string>
             </property>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <item>
+             <property name="text">
+              <string>None</string>
+             </property>
+            </item>
             <item>
              <property name="text">
               <string>Daily</string>
@@ -371,11 +432,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
             <item>
              <property name="text">
               <string>Custom</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>None</string>
              </property>
             </item>
            </widget>
@@ -454,6 +510,9 @@ li.checked::marker { content: &quot;\2612&quot;; }
             </item>
            </layout>
           </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="taskNameEdit"/>
+          </item>
          </layout>
         </item>
         <item row="2" column="1">
@@ -496,7 +555,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
   </widget>
  </widget>
  <tabstops>
-  <tabstop>calendarWidget</tabstop>
   <tabstop>newTaskButton</tabstop>
   <tabstop>addTaskButton</tabstop>
  </tabstops>

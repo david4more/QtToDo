@@ -25,8 +25,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ToDoList
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        taskwidget.h taskwidget.cpp taskwidget.ui
+        widgets/taskwidget.h widgets/taskwidget.cpp widgets/taskwidget.ui
         Task.h
+        resourses.h
 
 
     )

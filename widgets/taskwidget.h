@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QVBoxLayout>
-#include "Task.h"
+class Task;
 
 namespace Ui {
 class TaskWidget;
@@ -23,7 +23,6 @@ public:
 
 private:
     Ui::TaskWidget *ui;
-    QColor color;
 };
 
 #endif // TASKWIDGET_H

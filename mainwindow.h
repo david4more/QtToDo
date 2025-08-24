@@ -5,11 +5,14 @@
 #include <QStackedWidget>
 #include <QTime>
 #include <QFile>
+#include <QSaveFile>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QMessageBox>
-#include "Task.h"
+#include <QTextCharFormat>
+#include <QToolButton>
 
+class Task;
 class TaskWidget;
 
 QT_BEGIN_NAMESPACE
@@ -37,9 +40,7 @@ private:
     Ui::MainWindow *ui;
 
     QVector<Task> tasks;
-    const QString errorStyle = "background-color: #5a1f1f;";
     enum State { default_view, new_task } state = State::default_view;
-    QString defaultFileName = "tasks.json";
     QDate pickedDate;
 
     void updateDefaultView();

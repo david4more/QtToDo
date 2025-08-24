@@ -1,6 +1,8 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
-#include "taskwidget.h"
+#include "ui_mainwindow.h"
+#include "widgets/taskwidget.h"
+#include "Task.h"
+#include "resourses.h"
 
 MainWindow::~MainWindow()
 {
@@ -17,9 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
     connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
 
-    ui->todayGroup->setTitle(QDate::currentDate().toString("dddd, d MMMM") + ": Today's tasks");
-
-    QFile file(defaultFileName);
+    QFile file(Res::tasksFileName);
     if (file.open(QIODevice::ReadOnly))
     {
         QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
@@ -29,7 +29,42 @@ MainWindow::MainWindow(QWidget *parent)
         for (const QJsonValue &val : arr)
             tasks.append(Task(val.toObject()));
     }
+
     pickedDate = QDate::currentDate();
+
+
+
+    //                  STYLING
+    // date suffix
+    int day = pickedDate.day();
+    QString suffix;
+    if (day % 10 == 1 && day != 11)       suffix = "st";
+    else if (day % 10 == 2 && day != 12)  suffix = "nd";
+    else if (day % 10 == 3 && day != 13)  suffix = "rd";
+    else                                  suffix = "th";
+    QString title = pickedDate.toString("dddd, MMMM d");
+    title.replace(QString::number(day), QString::number(day) + suffix);
+    ui->todayGroup->setTitle(title + ": tasks");
+
+    // calendar styling
+    ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
+    ui->calendarWidget->findChild<QToolButton*>("qt_calendar_nextmonth")->hide();
+    QTextCharFormat format;
+    format.setForeground(QColor(Res::white));
+    ui->calendarWidget->setHeaderTextFormat(format);
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Monday, format);
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Tuesday,   format);
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Wednesday, format);
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Thursday,   format);
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Friday, format);
+    format.setForeground(QColor(Res::blue));
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Saturday, format);
+    ui->calendarWidget->setWeekdayTextFormat(Qt::Sunday,   format);
+
+    ui->todayGroup->setStyleSheet(Res::colorStyle.arg(Res::white));
+    ui->newTaskButton->setStyleSheet(Res::colorStyle.arg(Res::white));
+
+    ui->deadlinesListWidget->addItem("No quests today;\ntake heed and chill thy spirit,\nO mortal of fleeting time.");
 
     changeState(State::default_view);
 }
@@ -54,48 +89,39 @@ void MainWindow::onAddTaskButton()
 {
     if (ui->taskNameEdit->text().trimmed().isEmpty())
     {
-        ui->taskNameEdit->setStyleSheet(errorStyle);
+        ui->taskNameEdit->setStyleSheet(Res::backgroundStyle.arg(Res::error));
         return;
-    }
-
-    QFile file(defaultFileName);
-    if (!file.open(QIODevice::ReadWrite)) {
-        QMessageBox::critical(this, "File Error", "Failed to open tasks file for read/write.");
-        return;
-    }
-
-    QJsonArray tasksArray;
-    QByteArray data = file.readAll();
-    QJsonDocument doc;
-    if (!data.isEmpty()) {
-        doc = QJsonDocument::fromJson(data);
-        if (doc.isArray())
-            tasksArray = doc.array();
-        else {
-            file.close();
-            QMessageBox::critical(this, "File Error", "Tasks file is corrupted.");
-            return;
-        }
     }
 
     Task task(
         ui->taskNameEdit->text(),
         "",
-        "",
+        ui->taskPriorityBox->currentText(),
+        ui->taskTypeBox->currentText(),
         QDateTime(ui->taskDateEdit->date(), ui->taskTimeEdit->time()),
         "",
         Qt::blue,
         ui->taskDescriptionEdit->toPlainText(),
         false);
 
-    tasks.append(task);
-    tasksArray.append(task.toJson());
+    auto it = std::lower_bound(tasks.begin(), tasks.end(), task,
+        [](const Task &a, const Task &b){ return a.time < b.time; });
+    tasks.insert(it, task);
 
-    file.resize(0);
-    doc = QJsonDocument(tasksArray);
+    QJsonArray tasksArray;
+    for (const Task &t : tasks)
+        tasksArray.append(t.toJson());
+
+    QSaveFile file(Res::tasksFileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
+        return;
+    }
+
+    QJsonDocument doc(tasksArray);
     file.write(doc.toJson());
-    file.close();
-
+    if (!file.commit())
+        QMessageBox::critical(this, "File Error", "Failed to save tasks.");
 
     changeState(State::default_view);
 }
@@ -113,15 +139,26 @@ void MainWindow::updateDefaultView()
         delete child;
     }
 
+    bool hasTasks = false;
     for (const Task &task : tasks)
     {
         if (task.time.date() != pickedDate)
             continue;
 
+        hasTasks = true;
         TaskWidget *widget = new TaskWidget();
         widget->setTask(task);
         layout->addWidget(widget);
     }
+
+    if (!hasTasks)
+    {
+        QLabel *label = new QLabel("No tasks this day");
+        label->setStyleSheet("color: gray; font-style: italic; font-size: 14px;");
+        label->setAlignment(Qt::AlignCenter);
+        layout->addWidget(label);
+    }
+
 
     layout->invalidate();
     layout->activate();
@@ -131,10 +168,12 @@ void MainWindow::clearInputWindow()
 {
     ui->taskNameEdit->setStyleSheet("");
     ui->taskNameEdit->clear();
-    ui->taskDescriptionEdit->clear();
-
+    ui->taskPriorityBox->setCurrentIndex(0);
+    ui->taskTypeBox->setCurrentIndex(0);
     ui->taskDateEdit->setDate(QDate::currentDate());
     ui->taskTimeEdit->setTime(QTime::currentTime());
+    ui->taskRecurrenceBox->setCurrentIndex(0);
+    ui->taskDescriptionEdit->clear();
 }
 
 void MainWindow::changeState(State state)
