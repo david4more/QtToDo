@@ -11,25 +11,23 @@ struct Task
 {
     QString name;
     QString tags;
-    QString priority;
     QString type;
     QDateTime time;
     QString recurrence;
-    QColor color;
+    QString color;
     QString description;
     bool completion;
 
-    Task (QString name, QString tags, QString priority, QString type, QDateTime time, QString recurrence, QColor color, QString description, bool completion)
-        : name(name), tags(tags), priority(priority), type(type), time(time), recurrence(recurrence), color(color), description(description), completion(completion) {};
+    Task (QString name, QString tags, QString type, QDateTime time, QString recurrence, QString color, QString description, bool completion)
+        : name(name), tags(tags), type(type), time(time), recurrence(recurrence), color(color), description(description), completion(completion) {};
 
     Task(const QJsonObject &obj) {
         name = obj["name"].toString();
         tags = obj["tags"].toString();
-        priority = obj["priority"].toString();
         type = obj["type"].toString();
         time = QDateTime::fromString(obj["time"].toString(), Qt::ISODate);
         recurrence = obj["recurrence"].toString();
-        color = QColor(obj["color"].toString());
+        color = obj["color"].toString();
         description = obj["description"].toString();
         completion = obj["completion"].toBool();
     }
@@ -38,11 +36,10 @@ struct Task
         QJsonObject obj;
         obj["name"] = name;
         obj["tags"] = tags;
-        obj["priority"] = priority;
         obj["type"] = type;
         obj["time"] = time.toString(Qt::ISODate);
         obj["recurrence"] = recurrence;
-        obj["color"] = color.name();
+        obj["color"] = color;
         obj["description"] = description;
         obj["completion"] = completion;
 
@@ -58,10 +55,10 @@ struct Task
     void toJson(QJsonObject &obj) {
         obj["name"] = name;
         obj["tags"] = tags;
-        obj["priority"] = priority;
+        obj["type"] = type;
         obj["time"] = time.toString(Qt::ISODate);
         obj["recurrence"] = recurrence;
-        obj["color"] = color.name();
+        obj["color"] = color;
         obj["description"] = description;
         obj["completion"] = completion;
     }

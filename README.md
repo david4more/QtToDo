@@ -27,6 +27,9 @@ A simple Qt Widgets To-Do List app to manage daily tasks efficiently.
   - list export
   - time to sleep
   - daily schedule via recurring tasks (bedtime, work, gym, etc.)
+  - notifications
+  - mobile version, synchronization
+  - language processing (naming task "celebrate bd monday" will add the task on monday)
 
 ## Technical Stack
 

@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
     connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
     connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
+    connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
 
     QFile file(Res::tasksFileName);
     if (file.open(QIODevice::ReadOnly))
@@ -66,6 +67,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->deadlinesListWidget->addItem("No quests today;\ntake heed and chill thy spirit,\nO mortal of fleeting time.");
 
+    taskColor = Res::blue;
+
     changeState(State::default_view);
 }
 
@@ -96,11 +99,10 @@ void MainWindow::onAddTaskButton()
     Task task(
         ui->taskNameEdit->text(),
         "",
-        ui->taskPriorityBox->currentText(),
         ui->taskTypeBox->currentText(),
         QDateTime(ui->taskDateEdit->date(), ui->taskTimeEdit->time()),
         "",
-        Qt::blue,
+        taskColor.name(),
         ui->taskDescriptionEdit->toPlainText(),
         false);
 
@@ -124,6 +126,16 @@ void MainWindow::onAddTaskButton()
         QMessageBox::critical(this, "File Error", "Failed to save tasks.");
 
     changeState(State::default_view);
+}
+
+void MainWindow::onPickColorButton()
+{
+    QColor color = QColorDialog::getColor(Qt::blue, this, "Choose task's color code");
+
+    if (color.isValid()){
+        taskColor = color;
+        ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(taskColor.name()));
+    }
 }
 
 void MainWindow::updateDefaultView()
@@ -168,10 +180,11 @@ void MainWindow::clearInputWindow()
 {
     ui->taskNameEdit->setStyleSheet("");
     ui->taskNameEdit->clear();
-    ui->taskPriorityBox->setCurrentIndex(0);
     ui->taskTypeBox->setCurrentIndex(0);
     ui->taskDateEdit->setDate(QDate::currentDate());
     ui->taskTimeEdit->setTime(QTime::currentTime());
+    taskColor = Res::blue;
+    ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(taskColor.name()));
     ui->taskRecurrenceBox->setCurrentIndex(0);
     ui->taskDescriptionEdit->clear();
 }

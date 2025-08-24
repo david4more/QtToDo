@@ -143,7 +143,15 @@ QCalendarWidget QHeaderView {
            <number>0</number>
           </property>
           <item>
-           <widget class="QListWidget" name="tasksListWidget"/>
+           <widget class="QPlainTextEdit" name="plainTextEdit">
+            <property name="plainText">
+             <string>Tags
+Recurrence implementation
+Checkbox functionality
+Color
+Types</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -200,7 +208,7 @@ QCalendarWidget QHeaderView {
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="default_view">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -314,6 +322,9 @@ QCalendarWidget QHeaderView {
             </property>
            </widget>
           </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="taskNameEdit"/>
+          </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_4">
             <property name="text">
@@ -329,45 +340,13 @@ QCalendarWidget QHeaderView {
            </widget>
           </item>
           <item row="2" column="0">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Priority</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QComboBox" name="taskPriorityBox">
-            <property name="currentText">
-             <string>Default</string>
-            </property>
-            <property name="currentIndex">
-             <number>0</number>
-            </property>
-            <item>
-             <property name="text">
-              <string>Default</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Low</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>High</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item row="3" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Time</string>
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
+          <item row="2" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
              <widget class="QComboBox" name="taskTypeBox">
@@ -399,14 +378,14 @@ QCalendarWidget QHeaderView {
             </item>
            </layout>
           </item>
-          <item row="4" column="0">
+          <item row="3" column="0">
            <widget class="QLabel" name="label_7">
             <property name="text">
              <string>Recurrence</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
+          <item row="3" column="1">
            <widget class="QComboBox" name="taskRecurrenceBox">
             <property name="currentText">
              <string>None</string>
@@ -436,7 +415,7 @@ QCalendarWidget QHeaderView {
             </item>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="4" column="0">
            <widget class="QLabel" name="label_5">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -449,7 +428,7 @@ QCalendarWidget QHeaderView {
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="4" column="1">
            <widget class="QPushButton" name="taskColorButton">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -468,7 +447,7 @@ QCalendarWidget QHeaderView {
             </property>
            </widget>
           </item>
-          <item row="6" column="0">
+          <item row="5" column="0">
            <widget class="QLabel" name="label_3">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -481,7 +460,7 @@ QCalendarWidget QHeaderView {
             </property>
            </widget>
           </item>
-          <item row="6" column="1">
+          <item row="5" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <property name="sizeConstraint">
              <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
@@ -509,9 +488,6 @@ QCalendarWidget QHeaderView {
              </widget>
             </item>
            </layout>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="taskNameEdit"/>
           </item>
          </layout>
         </item>
