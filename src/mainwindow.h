@@ -12,6 +12,7 @@
 #include <QTextCharFormat>
 #include <QToolButton>
 #include <QColorDialog>
+#include <QInputDialog>
 
 class Task;
 class TaskWidget;
@@ -37,6 +38,7 @@ private slots:
     void onAddTaskButton();
     void onPickColorButton();
     void onDateClick(const QDate &date);
+    void onPickTagsButton();
 
 private:
     Ui::MainWindow *ui;
@@ -53,29 +55,29 @@ private:
 
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #endif // MAINWINDOW_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

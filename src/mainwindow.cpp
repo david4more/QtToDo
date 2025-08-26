@@ -7,6 +7,22 @@
 MainWindow::~MainWindow()
 {
     delete ui;
+
+
+    QSaveFile file(Res::prefsFileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
+        return;
+    }
+
+    QJsonArray tagsArray;
+    for (const QString &tag : tags)
+        tagsArray.append(tag);
+
+    QJsonDocument doc(tagsArray);
+    file.write(doc.toJson());
+    if (!file.commit())
+        QMessageBox::critical(this, "File Error", "Failed to save tasks.");
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -14,60 +30,79 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    pickedDate = QDate::currentDate();
 
     connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
     connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
     connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
     connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
+    connect(ui->taskTagsButton, &QPushButton::clicked, this, &MainWindow::onPickTagsButton);
 
-    QFile file(Res::tasksFileName);
-    if (file.open(QIODevice::ReadOnly))
+    //          READING FROM FILES
+    // reading tasks
+    QFile tasksFile(Res::tasksFileName);
+    if (tasksFile.open(QIODevice::ReadOnly))
     {
-        QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
-        file.close();
+        QJsonDocument doc = QJsonDocument::fromJson(tasksFile.readAll());
+        tasksFile.close();
 
         QJsonArray arr = doc.array();
         for (const QJsonValue &val : arr)
             tasks.append(Task(val.toObject()));
     }
 
-    pickedDate = QDate::currentDate();
+    // reading preferences
+    QFile resoursesFile(Res::prefsFileName);
+    if (resoursesFile.open(QIODevice::ReadOnly))
+    {
+        QJsonDocument doc = QJsonDocument::fromJson(resoursesFile.readAll());
+        resoursesFile.close();
+
+        QJsonObject obj = doc.object();
+        if (obj.contains("tags"))
+        {
+            QJsonArray tagsArray = obj["tags"].toArray();
+            for (const auto &tag : tagsArray)
+                tags.append(tag.toString());
+        }
+    }
 
 
 
     //                  STYLING
     // date suffix
-    int day = pickedDate.day();
-    QString suffix;
-    if (day % 10 == 1 && day != 11)       suffix = "st";
-    else if (day % 10 == 2 && day != 12)  suffix = "nd";
-    else if (day % 10 == 3 && day != 13)  suffix = "rd";
-    else                                  suffix = "th";
-    QString title = pickedDate.toString("dddd, MMMM d");
-    title.replace(QString::number(day), QString::number(day) + suffix);
-    ui->todayGroup->setTitle(title + ": tasks");
+    {
+        int day = pickedDate.day();
+        QString suffix;
+        if (day % 10 == 1 && day != 11)       suffix = "st";
+        else if (day % 10 == 2 && day != 12)  suffix = "nd";
+        else if (day % 10 == 3 && day != 13)  suffix = "rd";
+        else                                  suffix = "th";
+        QString title = pickedDate.toString("dddd, MMMM d");
+        title.replace(QString::number(day), QString::number(day) + suffix);
+        ui->todayGroup->setTitle(title + ": tasks");
+    }
 
     // calendar styling
-    ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
-    ui->calendarWidget->findChild<QToolButton*>("qt_calendar_nextmonth")->hide();
-    QTextCharFormat format;
-    format.setForeground(QColor(Res::white));
-    ui->calendarWidget->setHeaderTextFormat(format);
-    ui->calendarWidget->setWeekdayTextFormat(Qt::Monday, format);
-    ui->calendarWidget->setWeekdayTextFormat(Qt::Tuesday,   format);
-    ui->calendarWidget->setWeekdayTextFormat(Qt::Wednesday, format);
-    ui->calendarWidget->setWeekdayTextFormat(Qt::Thursday,   format);
-    ui->calendarWidget->setWeekdayTextFormat(Qt::Friday, format);
-    format.setForeground(QColor(Res::blue));
-    ui->calendarWidget->setWeekdayTextFormat(Qt::Saturday, format);
-    ui->calendarWidget->setWeekdayTextFormat(Qt::Sunday,   format);
+    {
+        ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
+        ui->calendarWidget->findChild<QToolButton*>("qt_calendar_nextmonth")->hide();
+        QTextCharFormat format;
+        format.setForeground(QColor(Res::white));
+        ui->calendarWidget->setHeaderTextFormat(format);
+        QList<Qt::DayOfWeek> weekdays = {Qt::Monday, Qt::Tuesday, Qt::Wednesday, Qt::Thursday, Qt::Friday};
+        for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
+        format.setForeground(QColor(Res::blue));
+        weekdays = {Qt::Saturday, Qt::Sunday};
+        for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
+    }
+
+
+    ui->tasksListWidget->addItem("No quests today;\ntake heed and chill thy spirit,\nO mortal of fleeting time.");
+    taskColor = Res::blue;
 
     ui->todayGroup->setStyleSheet(Res::colorStyle.arg(Res::white));
     ui->newTaskButton->setStyleSheet(Res::colorStyle.arg(Res::white));
-
-    ui->deadlinesListWidget->addItem("No quests today;\ntake heed and chill thy spirit,\nO mortal of fleeting time.");
-
-    taskColor = Res::blue;
 
     changeState(State::default_view);
 }
@@ -98,7 +133,7 @@ void MainWindow::onAddTaskButton()
 
     Task task(
         ui->taskNameEdit->text(),
-        "",
+        QStringList(),
         ui->taskTypeBox->currentText(),
         QDateTime(ui->taskDateEdit->date(), ui->taskTimeEdit->time()),
         "",
@@ -171,9 +206,12 @@ void MainWindow::updateDefaultView()
         layout->addWidget(label);
     }
 
-
-    layout->invalidate();
     layout->activate();
+}
+
+void MainWindow::onPickTagsButton()
+{
+
 }
 
 void MainWindow::clearInputWindow()

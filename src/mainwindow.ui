@@ -17,7 +17,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Thinker (and you're the doer)</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -143,15 +143,7 @@ QCalendarWidget QHeaderView {
            <number>0</number>
           </property>
           <item>
-           <widget class="QPlainTextEdit" name="plainTextEdit">
-            <property name="plainText">
-             <string>Tags
-Recurrence implementation
-Checkbox functionality
-Color
-Types</string>
-            </property>
-           </widget>
+           <widget class="QListWidget" name="tasksListWidget"/>
           </item>
          </layout>
         </widget>
@@ -184,7 +176,28 @@ Types</string>
            <number>0</number>
           </property>
           <item>
-           <widget class="QListWidget" name="deadlinesListWidget"/>
+           <widget class="QListWidget" name="deadlinesListWidget">
+            <item>
+             <property name="text">
+              <string>Tags</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Recurrence implementation</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Checkbox functionality</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Types</string>
+             </property>
+            </item>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -332,13 +345,6 @@ Types</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QPushButton" name="pushButton">
-            <property name="text">
-             <string>Add</string>
-            </property>
-           </widget>
-          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label">
             <property name="text">
@@ -410,7 +416,7 @@ Types</string>
             </item>
             <item>
              <property name="text">
-              <string>Custom</string>
+              <string>Custom...</string>
              </property>
             </item>
            </widget>
@@ -443,7 +449,7 @@ Types</string>
              </size>
             </property>
             <property name="text">
-             <string>Pick</string>
+             <string>Pick...</string>
             </property>
            </widget>
           </item>
@@ -488,6 +494,13 @@ Types</string>
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="taskTagsButton">
+            <property name="text">
+             <string>Pick...</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

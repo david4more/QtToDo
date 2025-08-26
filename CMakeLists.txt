@@ -26,6 +26,7 @@ set(PROJECT_SOURCES
 
 add_executable(ToDoList
     ${PROJECT_SOURCES}
+
 )
 
 target_link_libraries(ToDoList PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)

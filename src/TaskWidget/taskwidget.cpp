@@ -22,7 +22,7 @@ TaskWidget::TaskWidget(QWidget *parent)
 void TaskWidget::setTask(const Task &task)
 {
     ui->nameLabel->setText(task.name);
-    ui->tagsLabel->setText(task.tags);
+    ui->tagsLabel->setText(task.tagsString());
     ui->timeLabel->setText(task.time.time().toString("hh:mm"));
     ui->completionBox->setCheckState(task.completion ? Qt::Checked : Qt::Unchecked);
     ui->line->setStyleSheet(Res::taskStyle.arg(task.color));

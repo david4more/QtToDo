@@ -6,11 +6,12 @@
 #include <QColor>
 #include <QJsonObject>
 #include <QStringList>
+#include <QJsonArray>
 
 struct Task
 {
     QString name;
-    QString tags;
+    QStringList tags;
     QString type;
     QDateTime time;
     QString recurrence;
@@ -18,24 +19,30 @@ struct Task
     QString description;
     bool completion;
 
-    Task (QString name, QString tags, QString type, QDateTime time, QString recurrence, QString color, QString description, bool completion)
+    Task (QString name, QStringList tags, QString type, QDateTime time, QString recurrence, QString color, QString description, bool completion)
         : name(name), tags(tags), type(type), time(time), recurrence(recurrence), color(color), description(description), completion(completion) {};
 
-    Task(const QJsonObject &obj) {
-        name = obj["name"].toString();
-        tags = obj["tags"].toString();
-        type = obj["type"].toString();
-        time = QDateTime::fromString(obj["time"].toString(), Qt::ISODate);
-        recurrence = obj["recurrence"].toString();
-        color = obj["color"].toString();
-        description = obj["description"].toString();
-        completion = obj["completion"].toBool();
-    }
+    Task(const QJsonObject &obj)
+        : Task(
+            obj["name"].toString(),
+            [&] { QStringList tags;
+                for (const auto &tag : obj["tags"].toArray())
+                    tags.append(tag.toString());
+                return tags;
+            }(),
+            obj["type"].toString(),
+            QDateTime::fromString(obj["time"].toString(), Qt::ISODate),
+            obj["recurrence"].toString(),
+            obj["color"].toString(),
+            obj["description"].toString(),
+            obj["completion"].toBool()
+            ) {};
+
 
     QJsonObject toJson() const {
         QJsonObject obj;
         obj["name"] = name;
-        obj["tags"] = tags;
+        obj["tags"] = QJsonArray::fromStringList(tags);
         obj["type"] = type;
         obj["time"] = time.toString(Qt::ISODate);
         obj["recurrence"] = recurrence;
@@ -46,11 +53,16 @@ struct Task
         return obj;
     }
 
-    QStringList tagList() const {
-        return tags.split(",", Qt::SkipEmptyParts);
+    void addTag(const QString &tag) { if (!tags.contains(tag)) tags.append(tag); }
+
+    void removeTag(const QString &tag) { tags.removeAll(tag); }
+
+    QString tagsString() const {
+        return tags.join(", ");
     }
 
     // NOT YET USED
+    /*
 
     void toJson(QJsonObject &obj) {
         obj["name"] = name;
@@ -62,7 +74,7 @@ struct Task
         obj["description"] = description;
         obj["completion"] = completion;
     }
-
+    */
 };
 
 
