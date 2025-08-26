@@ -211,7 +211,33 @@ void MainWindow::updateDefaultView()
 
 void MainWindow::onPickTagsButton()
 {
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle("Task summoner, name thy tag");
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
 
+    for (const QString &tag : tags)
+    {
+        QCheckBox *checkBox = new QCheckBox(tag, dialog);
+        layout->addWidget(checkBox);
+    }
+
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    QLineEdit *line = new QLineEdit(dialog);
+    QPushButton *button = new QPushButton("Add...", dialog);
+
+    hLayout->addWidget(line);
+    hLayout->addWidget(button);
+    layout->addLayout(hLayout);
+
+    connect(button, &QPushButton::clicked, [layout, dialog, line, this] {
+        QString tag = line->text();
+        tags.append(tag);
+        QCheckBox *checkBox = new QCheckBox(tag, dialog);
+        layout->addWidget(checkBox);
+        line->clear();
+    });
+
+    dialog->exec();
 }
 
 void MainWindow::clearInputWindow()

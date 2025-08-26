@@ -13,6 +13,9 @@
 #include <QToolButton>
 #include <QColorDialog>
 #include <QInputDialog>
+#include <QDialog>
+#include <QLabel>
+#include <QCheckBox>
 
 class Task;
 class TaskWidget;
@@ -52,6 +55,7 @@ private:
     void updateDefaultView();
     void clearInputWindow();
     void changeState(State state);
+    void addTag(const QString &tag);
 
 };
 
