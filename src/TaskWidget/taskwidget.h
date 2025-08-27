@@ -20,6 +20,7 @@ public:
     ~TaskWidget();
 
     void setTask(const Task &task);
+    static QDate pickedDate;
 
 private:
     Ui::TaskWidget *ui;

@@ -362,10 +362,24 @@ QCalendarWidget QHeaderView {
              </widget>
             </item>
             <item>
-             <widget class="QDateEdit" name="taskDateEdit"/>
+             <widget class="QDateEdit" name="taskDateEdit">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
             </item>
             <item>
-             <widget class="QTimeEdit" name="taskTimeEdit"/>
+             <widget class="QTimeEdit" name="taskTimeEdit">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

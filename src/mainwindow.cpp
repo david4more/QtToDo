@@ -40,7 +40,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
     connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
     connect(ui->taskTagsButton, &QPushButton::clicked, this, &MainWindow::onPickTagsButton);
-    connect(ui->taskTypeBox, &QComboBox::currentIndexChanged, this, &MainWindow::onTypeChanged);
 
     //          READING FROM FILES
     // reading tasks
@@ -77,11 +76,7 @@ MainWindow::MainWindow(QWidget *parent)
     // date suffix
     {
         int day = pickedDate.day();
-        QString suffix;
-        if (day % 10 == 1 && day != 11)       suffix = "st";
-        else if (day % 10 == 2 && day != 12)  suffix = "nd";
-        else if (day % 10 == 3 && day != 13)  suffix = "rd";
-        else                                  suffix = "th";
+        QString suffix = Res::getSuffix(day);
         QString title = pickedDate.toString("dddd, MMMM d");
         title.replace(QString::number(day), QString::number(day) + suffix);
         ui->todayGroup->setTitle(title + ": tasks");
@@ -133,8 +128,7 @@ void MainWindow::onNewTaskButton()
 
 void MainWindow::onAddTaskButton()
 {
-    if (ui->taskNameEdit->text().trimmed().isEmpty())
-    {
+    if (ui->taskNameEdit->text().trimmed().isEmpty()) {
         ui->taskNameEdit->setStyleSheet(Res::backgroundStyle.arg(Res::error));
         return;
     }
@@ -219,19 +213,6 @@ void MainWindow::onPickTagsButton()
     dialog->exec();
 }
 
-void MainWindow::onTypeChanged(int index)
-{
-    switch (index)
-    {
-    case 0:
-        break;
-    case 1:
-        break;
-    case 2:
-        break;
-    }
-}
-
 void MainWindow::onPickColorButton()
 {
     QColorDialog dialog(this);
@@ -256,6 +237,8 @@ void MainWindow::onPickColorButton()
 
 void MainWindow::updateDefaultView()
 {
+    TaskWidget::pickedDate = pickedDate;
+
     QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidget->layout());
     layout->setAlignment(Qt::AlignTop);
 
@@ -267,14 +250,12 @@ void MainWindow::updateDefaultView()
         delete child;
     }
 
-    bool hasTasks = false;
     QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
     for (const Task &task : tasks)
     {
         if (task.time.date() != pickedDate && task.type != Res::defaultType)
             continue;
 
-        hasTasks = true;
         TaskWidget *widget = new TaskWidget();
         widget->setTask(task);
 
@@ -298,12 +279,17 @@ void MainWindow::updateDefaultView()
     setTasks(deadlinesTasks, "Deadlines");
     setTasks(defaultTasks, "Default tasks");
 
-    if (!hasTasks)
-    {
-        QLabel *label = new QLabel("No tasks this day");
+    if (dueTasks.empty() && deadlinesTasks.empty()) {
+        QString labelText;
+        if (!defaultTasks.empty())
+            labelText = ((pickedDate == QDate::currentDate()) ? "No tasks today" : "No tasks this day");
+        else
+            labelText = "No tasks";
+
+        QLabel *label = new QLabel(labelText);
         label->setStyleSheet("color: gray; font-style: italic; font-size: 14px;");
         label->setAlignment(Qt::AlignCenter);
-        layout->addWidget(label);
+        layout->insertWidget(0, label);
     }
 
     layout->update();

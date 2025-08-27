@@ -17,6 +17,17 @@ namespace Res
     inline const QString tasksFileName = "tasks.json";
     inline const QString prefsFileName = "preferences.json";
     inline const QString defaultType = "Default", dueType = "Due time", deadlineType = "Deadline";
+    inline constexpr bool lightMode = false;
+
+    inline const QString getSuffix(int day)
+    {
+        QString suffix;
+        if (day % 10 == 1 && day != 11)       suffix = "st";
+        else if (day % 10 == 2 && day != 12)  suffix = "nd";
+        else if (day % 10 == 3 && day != 13)  suffix = "rd";
+        else                                  suffix = "th";
+        return suffix;
+    }
 };
 
 #endif // RESOURSES_H
