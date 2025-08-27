@@ -42,6 +42,7 @@ private slots:
     void onPickColorButton();
     void onDateClick(const QDate &date);
     void onPickTagsButton();
+    void onTypeChanged(int index);
 
 private:
     Ui::MainWindow *ui;

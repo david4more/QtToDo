@@ -5,7 +5,7 @@
 
 namespace Res
 {
-    inline const QString blue = "#7ebffc";          // green: d0ea27 6fe2b8 5ae84f 4fce46 blue: 4fa9ff 6fb9ff 00ffd5 7ebffc other: f9a245 d66fff ff66ff
+    inline const QString defaultColor = "#7ebffc";          // green: d0ea27 6fe2b8 5ae84f 4fce46 blue: 4fa9ff 6fb9ff 00ffd5 7ebffc other: f9a245 d66fff ff66ff
     inline const QString green = "#3e8e41";
     inline const QString yellow = "#d9a600";
     inline const QString red = "#c0392b";
@@ -16,6 +16,7 @@ namespace Res
     inline const QString taskStyle = "border-radius: 2px; background-color: %1;";
     inline const QString tasksFileName = "tasks.json";
     inline const QString prefsFileName = "preferences.json";
+    inline const QString defaultType = "Default", dueType = "Due time", deadlineType = "Deadline";
 };
 
 #endif // RESOURSES_H

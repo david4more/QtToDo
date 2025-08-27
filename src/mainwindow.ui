@@ -179,11 +179,6 @@ QCalendarWidget QHeaderView {
            <widget class="QListWidget" name="deadlinesListWidget">
             <item>
              <property name="text">
-              <string>Tags</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
               <string>Recurrence implementation</string>
              </property>
             </item>
@@ -195,6 +190,11 @@ QCalendarWidget QHeaderView {
             <item>
              <property name="text">
               <string>Types</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Task editing</string>
              </property>
             </item>
            </widget>
@@ -235,8 +235,8 @@ QCalendarWidget QHeaderView {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>66</width>
-             <height>18</height>
+             <width>453</width>
+             <height>562</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -357,23 +357,8 @@ QCalendarWidget QHeaderView {
             <item>
              <widget class="QComboBox" name="taskTypeBox">
               <property name="currentIndex">
-               <number>0</number>
+               <number>-1</number>
               </property>
-              <item>
-               <property name="text">
-                <string>Default</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Due time</string>
-               </property>
-              </item>
-              <item>
-               <property name="text">
-                <string>Deadline</string>
-               </property>
-              </item>
              </widget>
             </item>
             <item>

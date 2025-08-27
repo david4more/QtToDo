@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
     connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
     connect(ui->taskTagsButton, &QPushButton::clicked, this, &MainWindow::onPickTagsButton);
+    connect(ui->taskTypeBox, &QComboBox::currentIndexChanged, this, &MainWindow::onTypeChanged);
 
     //          READING FROM FILES
     // reading tasks
@@ -95,17 +96,21 @@ MainWindow::MainWindow(QWidget *parent)
         ui->calendarWidget->setHeaderTextFormat(format);
         QList<Qt::DayOfWeek> weekdays = {Qt::Monday, Qt::Tuesday, Qt::Wednesday, Qt::Thursday, Qt::Friday};
         for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
-        format.setForeground(QColor(Res::blue));
+        format.setForeground(QColor(Res::defaultColor));
         weekdays = {Qt::Saturday, Qt::Sunday};
         for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
     }
 
 
     ui->tasksListWidget->addItem("No quests today;\ntake heed and chill thy spirit,\nO mortal of fleeting time.");
-    taskColor = Res::blue;
+    taskColor = Res::defaultColor;
 
     ui->todayGroup->setStyleSheet(Res::colorStyle.arg(Res::white));
     ui->newTaskButton->setStyleSheet(Res::colorStyle.arg(Res::white));
+
+    ui->taskTypeBox->addItem(Res::defaultType);
+    ui->taskTypeBox->addItem(Res::dueType);
+    ui->taskTypeBox->addItem(Res::deadlineType);
 
     changeState(State::default_view);
 }
@@ -204,7 +209,7 @@ void MainWindow::onPickTagsButton()
         line->clear();
     });
 
-    connect(doneButton, &QPushButton::clicked, [layout, dialog, line, this] {
+    connect(doneButton, &QPushButton::clicked, [dialog, this] {
         for (QCheckBox *cb : dialog->findChildren<QCheckBox*>())
             tags[cb->text()] = cb->isChecked();
 
@@ -214,16 +219,29 @@ void MainWindow::onPickTagsButton()
     dialog->exec();
 }
 
+void MainWindow::onTypeChanged(int index)
+{
+    switch (index)
+    {
+    case 0:
+        break;
+    case 1:
+        break;
+    case 2:
+        break;
+    }
+}
+
 void MainWindow::onPickColorButton()
 {
     QColorDialog dialog(this);
     dialog.setWindowTitle("Choose task's color");
-    dialog.setCurrentColor(QColor(Res::blue));
+    dialog.setCurrentColor(QColor(Res::defaultColor));
 
-    dialog.setCustomColor(0, Res::red);
-    dialog.setCustomColor(1, Res::yellow);
-    dialog.setCustomColor(2, Res::green);
-    dialog.setCustomColor(3, Res::blue);
+    dialog.setCustomColor(0, Res::defaultColor);
+    dialog.setCustomColor(1, Res::red);
+    dialog.setCustomColor(2, Res::yellow);
+    dialog.setCustomColor(3, Res::green);
     dialog.setCustomColor(4, Res::white);
 
     if (dialog.exec() != QDialog::Accepted)
@@ -250,16 +268,35 @@ void MainWindow::updateDefaultView()
     }
 
     bool hasTasks = false;
+    QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
     for (const Task &task : tasks)
     {
-        if (task.time.date() != pickedDate)
+        if (task.time.date() != pickedDate && task.type != Res::defaultType)
             continue;
 
         hasTasks = true;
         TaskWidget *widget = new TaskWidget();
         widget->setTask(task);
-        layout->addWidget(widget);
+
+        if (task.type == Res::defaultType)
+            defaultTasks.append(widget);
+        else if (task.type == Res::dueType)
+            dueTasks.append(widget);
+        else if (task.type == Res::deadlineType)
+            deadlinesTasks.append(widget);
     }
+
+    auto setTasks = [this, layout](const QVector<TaskWidget*> tasksP, const QString type){
+        if (tasksP.empty()) return;
+        QLabel *label = new QLabel();
+        label->setText(type);
+        layout->addWidget(label);
+        for (TaskWidget* task : tasksP)
+            layout->addWidget(task);
+    };
+    setTasks(dueTasks, "Due tasks");
+    setTasks(deadlinesTasks, "Deadlines");
+    setTasks(defaultTasks, "Default tasks");
 
     if (!hasTasks)
     {
@@ -269,7 +306,7 @@ void MainWindow::updateDefaultView()
         layout->addWidget(label);
     }
 
-    layout->activate();
+    layout->update();
 }
 
 void MainWindow::clearInputWindow()
@@ -279,7 +316,7 @@ void MainWindow::clearInputWindow()
     ui->taskTypeBox->setCurrentIndex(0);
     ui->taskDateEdit->setDate(QDate::currentDate());
     ui->taskTimeEdit->setTime(QTime::currentTime());
-    taskColor = Res::blue;
+    taskColor = Res::defaultColor;
     ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(taskColor.name()));
     ui->taskRecurrenceBox->setCurrentIndex(0);
     ui->taskDescriptionEdit->clear();
