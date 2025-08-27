@@ -8,20 +8,23 @@ MainWindow::~MainWindow()
 {
     delete ui;
 
-
-    QSaveFile file(Res::prefsFileName);
-    if (!file.open(QIODevice::WriteOnly)) {
+    QSaveFile prefsFile(Res::prefsFileName);
+    if (!prefsFile.open(QIODevice::WriteOnly)) {
         QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
         return;
     }
 
     QJsonArray tagsArray;
-    for (const QString &tag : tags)
+    auto keys = tags.keys();
+    for (const QString &tag : keys)
         tagsArray.append(tag);
 
-    QJsonDocument doc(tagsArray);
-    file.write(doc.toJson());
-    if (!file.commit())
+    QJsonObject obj;
+    obj["tags"] = tagsArray;
+    QJsonDocument doc(obj);
+
+    prefsFile.write(doc.toJson());
+    if (!prefsFile.commit())
         QMessageBox::critical(this, "File Error", "Failed to save tasks.");
 }
 
@@ -52,18 +55,18 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     // reading preferences
-    QFile resoursesFile(Res::prefsFileName);
-    if (resoursesFile.open(QIODevice::ReadOnly))
+    QFile prefsFile(Res::prefsFileName);
+    if (prefsFile.open(QIODevice::ReadOnly))
     {
-        QJsonDocument doc = QJsonDocument::fromJson(resoursesFile.readAll());
-        resoursesFile.close();
+        QJsonDocument doc = QJsonDocument::fromJson(prefsFile.readAll());
+        prefsFile.close();
 
         QJsonObject obj = doc.object();
         if (obj.contains("tags"))
         {
             QJsonArray tagsArray = obj["tags"].toArray();
             for (const auto &tag : tagsArray)
-                tags.append(tag.toString());
+                tags.insert(tag.toString(), false);
         }
     }
 
@@ -131,9 +134,15 @@ void MainWindow::onAddTaskButton()
         return;
     }
 
+    QList<QString> currentTags;
+    for (auto it = tags.cbegin(); it != tags.cend(); ++it) {
+        if (it.value())
+            currentTags.append(it.key());
+    }
+
     Task task(
         ui->taskNameEdit->text(),
-        QStringList(),
+        currentTags,
         ui->taskTypeBox->currentText(),
         QDateTime(ui->taskDateEdit->date(), ui->taskTimeEdit->time()),
         "",
@@ -163,10 +172,64 @@ void MainWindow::onAddTaskButton()
     changeState(State::default_view);
 }
 
+void MainWindow::onPickTagsButton()
+{
+    QDialog *dialog = new QDialog(this);
+    dialog->setWindowTitle("Name thy tag");
+    QVBoxLayout *layout = new QVBoxLayout(dialog);
+
+    for (auto it = tags.cbegin(); it != tags.cend(); ++it) {
+        QCheckBox *checkBox = new QCheckBox(it.key(), dialog);
+        checkBox->setChecked(it.value());
+        layout->addWidget(checkBox);
+    }
+
+    QHBoxLayout *hLayout = new QHBoxLayout;
+    QLineEdit *line = new QLineEdit(dialog);
+    QPushButton *button = new QPushButton("Add...", dialog);
+    QPushButton *doneButton = new QPushButton("Done", dialog);
+
+    hLayout->addWidget(line);
+    hLayout->addWidget(button);
+    layout->addLayout(hLayout);
+    layout->addWidget(doneButton);
+
+    connect(button, &QPushButton::clicked, [layout, dialog, line, this] {
+        QString tag = line->text();
+        if (tag == "") return;
+        tags.insert(tag, true);
+        QCheckBox *checkBox = new QCheckBox(tag, dialog);
+        checkBox->setCheckState(Qt::Checked);
+        layout->insertWidget(layout->count() - 2, checkBox);
+        line->clear();
+    });
+
+    connect(doneButton, &QPushButton::clicked, [layout, dialog, line, this] {
+        for (QCheckBox *cb : dialog->findChildren<QCheckBox*>())
+            tags[cb->text()] = cb->isChecked();
+
+        dialog->close();
+    });
+
+    dialog->exec();
+}
+
 void MainWindow::onPickColorButton()
 {
-    QColor color = QColorDialog::getColor(Qt::blue, this, "Choose task's color code");
+    QColorDialog dialog(this);
+    dialog.setWindowTitle("Choose task's color");
+    dialog.setCurrentColor(QColor(Res::blue));
 
+    dialog.setCustomColor(0, Res::red);
+    dialog.setCustomColor(1, Res::yellow);
+    dialog.setCustomColor(2, Res::green);
+    dialog.setCustomColor(3, Res::blue);
+    dialog.setCustomColor(4, Res::white);
+
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    QColor color = dialog.selectedColor();
     if (color.isValid()){
         taskColor = color;
         ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(taskColor.name()));
@@ -209,37 +272,6 @@ void MainWindow::updateDefaultView()
     layout->activate();
 }
 
-void MainWindow::onPickTagsButton()
-{
-    QDialog *dialog = new QDialog(this);
-    dialog->setWindowTitle("Task summoner, name thy tag");
-    QVBoxLayout *layout = new QVBoxLayout(dialog);
-
-    for (const QString &tag : tags)
-    {
-        QCheckBox *checkBox = new QCheckBox(tag, dialog);
-        layout->addWidget(checkBox);
-    }
-
-    QHBoxLayout *hLayout = new QHBoxLayout;
-    QLineEdit *line = new QLineEdit(dialog);
-    QPushButton *button = new QPushButton("Add...", dialog);
-
-    hLayout->addWidget(line);
-    hLayout->addWidget(button);
-    layout->addLayout(hLayout);
-
-    connect(button, &QPushButton::clicked, [layout, dialog, line, this] {
-        QString tag = line->text();
-        tags.append(tag);
-        QCheckBox *checkBox = new QCheckBox(tag, dialog);
-        layout->addWidget(checkBox);
-        line->clear();
-    });
-
-    dialog->exec();
-}
-
 void MainWindow::clearInputWindow()
 {
     ui->taskNameEdit->setStyleSheet("");
@@ -251,6 +283,7 @@ void MainWindow::clearInputWindow()
     ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(taskColor.name()));
     ui->taskRecurrenceBox->setCurrentIndex(0);
     ui->taskDescriptionEdit->clear();
+    for (auto &value : tags) value = false;
 }
 
 void MainWindow::changeState(State state)

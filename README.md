@@ -20,6 +20,8 @@ A simple Qt Widgets To-Do List app to manage daily tasks efficiently.
 
 - **Planned Features**
 
+  - checklist of tasks for day, day's results (what/when/was task accomplished)
+  - notifications
   - pomodoro timer, tags, color coding, deadlines
   - expected time spent, Pomodoro tracking, completition status, subtasks
   - custom month switching, month label above calendar
@@ -27,7 +29,6 @@ A simple Qt Widgets To-Do List app to manage daily tasks efficiently.
   - list export
   - time to sleep
   - daily schedule via recurring tasks (bedtime, work, gym, etc.)
-  - notifications
   - mobile version, synchronization
   - language processing (naming task "celebrate bd monday" will add the task on monday)
 

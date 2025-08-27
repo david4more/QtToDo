@@ -47,7 +47,7 @@ private:
     Ui::MainWindow *ui;
 
     QVector<Task> tasks;
-    QVector<QString> tags;
+    QMap<QString, bool> tags;
     enum State { default_view, new_task } state = State::default_view;
     QDate pickedDate;
     QColor taskColor;
