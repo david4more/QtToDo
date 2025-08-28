@@ -26,6 +26,8 @@ MainWindow::~MainWindow()
     prefsFile.write(doc.toJson());
     if (!prefsFile.commit())
         QMessageBox::critical(this, "File Error", "Failed to save tasks.");
+
+    updateTasksFile();
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -116,14 +118,22 @@ void MainWindow::onDateClick(const QDate &date)
     updateDefaultView();
 }
 
-void MainWindow::onNewTaskButton()
+void MainWindow::updateTasksFile()
 {
-    switch (state) {
-    case State::default_view:
-        changeState(State::new_task); break;
-    case State::new_task:
-        changeState(State::default_view); break;
+    QJsonArray tasksArray;
+    for (const Task &t : tasks)
+        tasksArray.append(t.toJson());
+
+    QSaveFile file(Res::tasksFileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
+        return;
     }
+
+    QJsonDocument doc(tasksArray);
+    file.write(doc.toJson());
+    if (!file.commit())
+        QMessageBox::critical(this, "File Error", "Failed to save tasks.");
 }
 
 void MainWindow::onAddTaskButton()
@@ -153,20 +163,7 @@ void MainWindow::onAddTaskButton()
         [](const Task &a, const Task &b){ return a.time < b.time; });
     tasks.insert(it, task);
 
-    QJsonArray tasksArray;
-    for (const Task &t : tasks)
-        tasksArray.append(t.toJson());
-
-    QSaveFile file(Res::tasksFileName);
-    if (!file.open(QIODevice::WriteOnly)) {
-        QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
-        return;
-    }
-
-    QJsonDocument doc(tasksArray);
-    file.write(doc.toJson());
-    if (!file.commit())
-        QMessageBox::critical(this, "File Error", "Failed to save tasks.");
+    updateTasksFile();
 
     changeState(State::default_view);
 }
@@ -251,13 +248,12 @@ void MainWindow::updateDefaultView()
     }
 
     QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
-    for (const Task &task : tasks)
+    for (Task &task : tasks)
     {
         if (task.time.date() != pickedDate && task.type != Res::defaultType)
             continue;
 
-        TaskWidget *widget = new TaskWidget();
-        widget->setTask(task);
+        TaskWidget *widget = new TaskWidget(this, &task);
 
         if (task.type == Res::defaultType)
             defaultTasks.append(widget);
@@ -326,6 +322,16 @@ void MainWindow::changeState(State state)
     }
 
     ui->stackedWidget->setCurrentIndex(state);
+}
+
+void MainWindow::onNewTaskButton()
+{
+    switch (state) {
+    case State::default_view:
+        changeState(State::new_task); break;
+    case State::new_task:
+        changeState(State::default_view); break;
+    }
 }
 
 

@@ -16,14 +16,19 @@ class TaskWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit TaskWidget(QWidget *parent = nullptr);
+    explicit TaskWidget(QWidget *parent, Task *task);
     ~TaskWidget();
 
-    void setTask(const Task &task);
     static QDate pickedDate;
 
+private slots:
+    void onBoxChecked(bool checked);
+
 private:
+    void setupTask();
+    QString getStyle(bool checked);
     Ui::TaskWidget *ui;
+    Task *task;
 };
 
 #endif // TASKWIDGET_H

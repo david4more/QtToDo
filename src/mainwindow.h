@@ -39,6 +39,7 @@ private slots:
 
     void onNewTaskButton();
     void onAddTaskButton();
+    void updateTasksFile();
     void onPickColorButton();
     void onDateClick(const QDate &date);
     void onPickTagsButton();
