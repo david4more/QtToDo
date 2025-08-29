@@ -2,6 +2,7 @@
 #define RESOURSES_H
 
 #include <QString>
+#include <QMap>
 
 namespace Res
 {
@@ -17,8 +18,14 @@ namespace Res
     inline const QString tasksFileName = "tasks.json";
     inline const QString prefsFileName = "preferences.json";
     inline const QString defaultType = "Default", dueType = "Due time", deadlineType = "Deadline";
-    inline constexpr bool lightMode = false;
+    inline const QString noTasksStyle = "color: gray; font-style: italic; font-size: 14px;";
 
+    inline const enum Mode { def, light } mode = Mode::def;
+    inline const QMap<QString, int> Rec {
+        {"None", 0},
+        {"Daily", 1},
+        {"Weekly", 7},
+        {"Custom...", -1} };
     inline const QString getSuffix(int day)
     {
         QString suffix;
@@ -28,6 +35,14 @@ namespace Res
         else                                  suffix = "th";
         return suffix;
     }
+    inline const QStringList noTasksPlaceholders = {
+        "No quests today;\ntake heed and chill thy spirit,\nO mortal of fleeting time.",
+        "No quests call today;\nRest, let thy spirit be chill—\nTime drifts, swift and brief.",
+        "The scroll lies unread;\nchill winds whisper through the trees—\nTrials wait for dawn’s call.",
+        "O wanderer, chill;\nnot all days are meant for strife,\nsome just breathe in peace.",
+        "Your blade may stay still;\nlet the hours drift and chill—\nFate yet bides its time.",
+        "Questless stars above;\nchill night guards thy fleeting soul—\nTomorrow may burn."
+    };
 };
 
 #endif // RESOURSES_H

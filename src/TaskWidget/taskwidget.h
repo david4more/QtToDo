@@ -19,16 +19,16 @@ public:
     explicit TaskWidget(QWidget *parent, Task *task);
     ~TaskWidget();
 
-    static QDate pickedDate;
+    static void setDate(QDate date);
 
 private slots:
     void onBoxChecked(bool checked);
 
 private:
-    void setupTask();
     QString getStyle(bool checked);
     Ui::TaskWidget *ui;
     Task *task;
+    static QDate currentDate;
 };
 
 #endif // TASKWIDGET_H

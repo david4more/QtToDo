@@ -4,10 +4,91 @@
 #include "Task.h"
 #include "resourses.h"
 
+// Construction/desctruction, files handling
 MainWindow::~MainWindow()
 {
+    saveTasks();
+    savePreferences();
     delete ui;
+}
 
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    loadFiles();
+    setupUI();
+    changeState(State::default_view);
+}
+
+void MainWindow::setupUI()
+{
+    pickedDate = QDate::currentDate();
+
+    connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
+    connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
+    connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
+    connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
+    connect(ui->taskTagsButton, &QPushButton::clicked, this, &MainWindow::onPickTagsButton);
+    connect(ui->taskRecurrenceBox, &QComboBox::currentTextChanged, this, &MainWindow::onRecurrenceBox);
+
+    // calendar styling
+    ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
+    ui->calendarWidget->findChild<QToolButton*>("qt_calendar_nextmonth")->hide();
+    QTextCharFormat format;
+    format.setForeground(QColor(Res::white));
+    ui->calendarWidget->setHeaderTextFormat(format);
+    QList<Qt::DayOfWeek> weekdays = {Qt::Monday, Qt::Tuesday, Qt::Wednesday, Qt::Thursday, Qt::Friday};
+    for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
+    format.setForeground(QColor(Res::defaultColor));
+    weekdays = {Qt::Saturday, Qt::Sunday};
+    for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
+
+    // date suffix
+
+
+    int day = pickedDate.day();
+    QString suffix = Res::getSuffix(day);
+    QString title = pickedDate.toString("dddd, MMMM d");
+    title.replace(QString::number(day), QString::number(day) + suffix);
+    ui->todayGroup->setTitle(title + ": tasks");
+
+    // everything else
+    ui->tasksListWidget->addItem(Res::noTasksPlaceholders.at(QRandomGenerator::global()->bounded(Res::noTasksPlaceholders.size())));
+    data.color = Res::defaultColor;
+
+    ui->todayGroup->setStyleSheet(Res::colorStyle.arg(Res::white));
+    ui->newTaskButton->setStyleSheet(Res::colorStyle.arg(Res::white));
+
+    ui->taskTypeBox->addItem(Res::defaultType);
+    ui->taskTypeBox->addItem(Res::dueType);
+    ui->taskTypeBox->addItem(Res::deadlineType);
+
+    ui->taskRecurrenceBox->addItem(Res::Rec.key(0));
+    ui->taskRecurrenceBox->addItem(Res::Rec.key(1));
+    ui->taskRecurrenceBox->addItem(Res::Rec.key(7));
+    ui->taskRecurrenceBox->addItem(Res::Rec.key(-1));
+}
+
+void MainWindow::saveTasks()
+{
+    QJsonArray tasksArray;
+    for (const Task &t : tasks)
+        tasksArray.append(t.toJson());
+
+    QSaveFile file(Res::tasksFileName);
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
+        return;
+    }
+
+    QJsonDocument doc(tasksArray);
+    file.write(doc.toJson());
+    if (!file.commit())
+        QMessageBox::critical(this, "File Error", "Failed to save tasks.");
+}
+
+void MainWindow::savePreferences()
+{
     QSaveFile prefsFile(Res::prefsFileName);
     if (!prefsFile.open(QIODevice::WriteOnly)) {
         QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
@@ -26,24 +107,10 @@ MainWindow::~MainWindow()
     prefsFile.write(doc.toJson());
     if (!prefsFile.commit())
         QMessageBox::critical(this, "File Error", "Failed to save tasks.");
-
-    updateTasksFile();
 }
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+void MainWindow::loadFiles()
 {
-    ui->setupUi(this);
-    pickedDate = QDate::currentDate();
-
-    connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
-    connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
-    connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
-    connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
-    connect(ui->taskTagsButton, &QPushButton::clicked, this, &MainWindow::onPickTagsButton);
-
-    //          READING FROM FILES
     // reading tasks
     QFile tasksFile(Res::tasksFileName);
     if (tasksFile.open(QIODevice::ReadOnly))
@@ -71,71 +138,9 @@ MainWindow::MainWindow(QWidget *parent)
                 tags.insert(tag.toString(), false);
         }
     }
-
-
-
-    //                  STYLING
-    // date suffix
-    {
-        int day = pickedDate.day();
-        QString suffix = Res::getSuffix(day);
-        QString title = pickedDate.toString("dddd, MMMM d");
-        title.replace(QString::number(day), QString::number(day) + suffix);
-        ui->todayGroup->setTitle(title + ": tasks");
-    }
-
-    // calendar styling
-    {
-        ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
-        ui->calendarWidget->findChild<QToolButton*>("qt_calendar_nextmonth")->hide();
-        QTextCharFormat format;
-        format.setForeground(QColor(Res::white));
-        ui->calendarWidget->setHeaderTextFormat(format);
-        QList<Qt::DayOfWeek> weekdays = {Qt::Monday, Qt::Tuesday, Qt::Wednesday, Qt::Thursday, Qt::Friday};
-        for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
-        format.setForeground(QColor(Res::defaultColor));
-        weekdays = {Qt::Saturday, Qt::Sunday};
-        for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
-    }
-
-
-    ui->tasksListWidget->addItem("No quests today;\ntake heed and chill thy spirit,\nO mortal of fleeting time.");
-    taskColor = Res::defaultColor;
-
-    ui->todayGroup->setStyleSheet(Res::colorStyle.arg(Res::white));
-    ui->newTaskButton->setStyleSheet(Res::colorStyle.arg(Res::white));
-
-    ui->taskTypeBox->addItem(Res::defaultType);
-    ui->taskTypeBox->addItem(Res::dueType);
-    ui->taskTypeBox->addItem(Res::deadlineType);
-
-    changeState(State::default_view);
 }
 
-void MainWindow::onDateClick(const QDate &date)
-{
-    pickedDate = date;
-    updateDefaultView();
-}
-
-void MainWindow::updateTasksFile()
-{
-    QJsonArray tasksArray;
-    for (const Task &t : tasks)
-        tasksArray.append(t.toJson());
-
-    QSaveFile file(Res::tasksFileName);
-    if (!file.open(QIODevice::WriteOnly)) {
-        QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
-        return;
-    }
-
-    QJsonDocument doc(tasksArray);
-    file.write(doc.toJson());
-    if (!file.commit())
-        QMessageBox::critical(this, "File Error", "Failed to save tasks.");
-}
-
+// Slots
 void MainWindow::onAddTaskButton()
 {
     if (ui->taskNameEdit->text().trimmed().isEmpty()) {
@@ -154,22 +159,39 @@ void MainWindow::onAddTaskButton()
         currentTags,
         ui->taskTypeBox->currentText(),
         QDateTime(ui->taskDateEdit->date(), ui->taskTimeEdit->time()),
-        "",
-        taskColor.name(),
+        data.recurrence,
+        data.color.name(),
         ui->taskDescriptionEdit->toPlainText(),
         false);
 
     auto it = std::lower_bound(tasks.begin(), tasks.end(), task,
-        [](const Task &a, const Task &b){ return a.time < b.time; });
+                               [](const Task &a, const Task &b){ return a.time < b.time; });
     tasks.insert(it, task);
 
-    updateTasksFile();
-
+    if (Res::mode == Res::Mode::def) saveTasks();
     changeState(State::default_view);
+}
+
+void MainWindow::onRecurrenceBox(const QString& text)
+{
+    if (text != Res::Rec.key(-1)) {
+        data.recurrence = text;
+        return;
+    }
+
+
+    // here's the magic
+}
+
+void MainWindow::onDateClick(const QDate &date)
+{
+    pickedDate = date;
+    updateDefaultView();
 }
 
 void MainWindow::onPickTagsButton()
 {
+    // QScopedPointer<QDialog> dialog = new QDialog(this);
     QDialog *dialog = new QDialog(this);
     dialog->setWindowTitle("Name thy tag");
     QVBoxLayout *layout = new QVBoxLayout(dialog);
@@ -227,15 +249,24 @@ void MainWindow::onPickColorButton()
 
     QColor color = dialog.selectedColor();
     if (color.isValid()){
-        taskColor = color;
-        ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(taskColor.name()));
+        data.color = color;
+        ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(data.color.name()));
     }
 }
 
+void MainWindow::onNewTaskButton()
+{
+    switch (state) {
+    case State::default_view:
+        changeState(State::new_task); break;
+    case State::new_task:
+        changeState(State::default_view); break;
+    }
+}
+
+// Helper functions
 void MainWindow::updateDefaultView()
 {
-    TaskWidget::pickedDate = pickedDate;
-
     QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidget->layout());
     layout->setAlignment(Qt::AlignTop);
 
@@ -247,6 +278,9 @@ void MainWindow::updateDefaultView()
         delete child;
     }
 
+    // here the magic should begin.
+
+    TaskWidget::setDate(pickedDate);
     QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
     for (Task &task : tasks)
     {
@@ -283,7 +317,7 @@ void MainWindow::updateDefaultView()
             labelText = "No tasks";
 
         QLabel *label = new QLabel(labelText);
-        label->setStyleSheet("color: gray; font-style: italic; font-size: 14px;");
+        label->setStyleSheet(Res::noTasksStyle);
         label->setAlignment(Qt::AlignCenter);
         layout->insertWidget(0, label);
     }
@@ -293,16 +327,17 @@ void MainWindow::updateDefaultView()
 
 void MainWindow::clearInputWindow()
 {
+    data.clear();
+    for (auto &value : tags) value = false;
+
     ui->taskNameEdit->setStyleSheet("");
     ui->taskNameEdit->clear();
     ui->taskTypeBox->setCurrentIndex(0);
     ui->taskDateEdit->setDate(QDate::currentDate());
     ui->taskTimeEdit->setTime(QTime::currentTime());
-    taskColor = Res::defaultColor;
-    ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(taskColor.name()));
-    ui->taskRecurrenceBox->setCurrentIndex(0);
+    ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(Res::defaultColor));
     ui->taskDescriptionEdit->clear();
-    for (auto &value : tags) value = false;
+    ui->taskRecurrenceBox->setCurrentIndex(0);
 }
 
 void MainWindow::changeState(State state)
@@ -323,17 +358,6 @@ void MainWindow::changeState(State state)
 
     ui->stackedWidget->setCurrentIndex(state);
 }
-
-void MainWindow::onNewTaskButton()
-{
-    switch (state) {
-    case State::default_view:
-        changeState(State::new_task); break;
-    case State::new_task:
-        changeState(State::default_view); break;
-    }
-}
-
 
 
 

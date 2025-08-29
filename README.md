@@ -31,7 +31,18 @@ A simple Qt Widgets To-Do List app to manage daily tasks efficiently.
   - daily schedule via recurring tasks (bedtime, work, gym, etc.)
   - mobile version, synchronization
   - language processing (naming task "celebrate bd monday" will add the task on monday)
+  - change from .json to optimise tasks list update
+  
+- **Feature implementation plans**
+  - Recurrence Handling
+    - Store recurrence as a QString
+    - First word: recurrence type (names or number of days)
+    - Following words: dates when the task was completed
 
+  - File I/O Optimization
+    - Store recurring and standard tasks at the beginning of the JSON file, then order by date
+    - On update, iterate only through tasks relevant to the selected date
+    
 ## Technical Stack
 
 - **C++17**, **Qt Widgets (Qt 6.9.1)**, **CMake**, **Git**

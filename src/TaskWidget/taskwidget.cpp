@@ -4,7 +4,7 @@
 #include "../resourses.h"
 #include <QMessageBox>
 
-QDate TaskWidget::pickedDate;
+QDate TaskWidget::currentDate;
 
 TaskWidget::~TaskWidget()
 {
@@ -17,8 +17,39 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     task(task)
 {
     ui->setupUi(this);
-    setupTask();
     connect(ui->completionBox, &QCheckBox::clicked, this, &TaskWidget::onBoxChecked);
+
+    ui->nameLabel->setText(task->name);
+    ui->tagsLabel->setText(task->tags.join(", "));
+    ui->completionBox->setCheckState(task->completion ? Qt::Checked : Qt::Unchecked);
+    ui->line->setStyleSheet(Res::taskStyle.arg(task->color));
+    onBoxChecked(task->completion);
+
+    if (task->type == Res::dueType)
+        ui->timeLabel->setText("Begin at " + task->time.time().toString("hh:mm"));
+    else if (task->type == Res::deadlineType)
+        ui->timeLabel->setText("Finish by " + task->time.time().toString("hh:mm"));
+    else if (task->type == Res::defaultType)
+    {
+        if (Res::mode == Res::Mode::light) {
+            ui->timeLabel->setText("Created at: " + task->time.time().toString("hh:mm"));
+            return;
+        }
+
+        if (currentDate == task->time.date())
+            ui->timeLabel->setText(task->time.time().toString("hh:mm"));
+        else if (currentDate.month() == task->time.date().month() && currentDate.year() == task->time.date().year())
+            ui->timeLabel->setText(task->time.date().toString("d") + Res::getSuffix(task->time.date().day()) + " at " + task->time.time().toString("hh:mm"));
+        else if (currentDate.year() == task->time.date().year())
+            ui->timeLabel->setText(task->time.date().toString("MMMM d") + Res::getSuffix(task->time.date().day()) + " at " + task->time.time().toString("hh:mm"));
+        else
+            ui->timeLabel->setText(task->time.date().toString("dd.MM.yyyy") + " at " + task->time.time().toString("hh:mm"));
+    }
+}
+
+void TaskWidget::setDate(QDate date)
+{
+    currentDate = date;
 }
 
 void TaskWidget::onBoxChecked(bool checked)
@@ -33,34 +64,4 @@ QString TaskWidget::getStyle(bool checked)
 {
     QString style = Res::colorStyle.arg(Res::white);
     return checked ? (style + "text-decoration: line-through;") : style;
-}
-
-void TaskWidget::setupTask()
-{
-    ui->nameLabel->setText(task->name);
-    ui->tagsLabel->setText(task->tags.join(", "));
-    ui->completionBox->setCheckState(task->completion ? Qt::Checked : Qt::Unchecked);
-    ui->line->setStyleSheet(Res::taskStyle.arg(task->color));
-    onBoxChecked(task->completion);
-
-    if (task->type == Res::dueType)
-        ui->timeLabel->setText("Begin at " + task->time.time().toString("hh:mm"));
-    else if (task->type == Res::deadlineType)
-        ui->timeLabel->setText("Finish by " + task->time.time().toString("hh:mm"));
-    else if (task->type == Res::defaultType)
-    {
-        if (Res::lightMode) {
-            ui->timeLabel->setText("Created at: " + task->time.time().toString("hh:mm"));
-            return;
-        }
-
-        if (pickedDate == task->time.date())
-            ui->timeLabel->setText(task->time.time().toString("hh:mm"));
-        else if (pickedDate.month() == task->time.date().month() && pickedDate.year() == task->time.date().year())
-            ui->timeLabel->setText(task->time.date().toString("d") + Res::getSuffix(task->time.date().day()) + " at " + task->time.time().toString("hh:mm"));
-        else if (pickedDate.year() == task->time.date().year())
-            ui->timeLabel->setText(task->time.date().toString("MMMM d") + Res::getSuffix(task->time.date().day()) + " at " + task->time.time().toString("hh:mm"));
-        else
-            ui->timeLabel->setText(task->time.date().toString("dd.MM.yyyy") + " at " + task->time.time().toString("hh:mm"));
-    }
 }

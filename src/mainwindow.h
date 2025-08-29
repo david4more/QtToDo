@@ -16,6 +16,8 @@
 #include <QDialog>
 #include <QLabel>
 #include <QCheckBox>
+#include <QScopedPointer>
+#include <QRandomGenerator>
 
 class Task;
 class TaskWidget;
@@ -39,10 +41,10 @@ private slots:
 
     void onNewTaskButton();
     void onAddTaskButton();
-    void updateTasksFile();
     void onPickColorButton();
     void onDateClick(const QDate &date);
     void onPickTagsButton();
+    void onRecurrenceBox(const QString& text);
 
 private:
     Ui::MainWindow *ui;
@@ -50,8 +52,18 @@ private:
     QVector<Task> tasks;
     QMap<QString, bool> tags;
     enum State { default_view, new_task } state = State::default_view;
+
     QDate pickedDate;
-    QColor taskColor;
+    struct {
+        QColor color;
+        QString recurrence;
+        void clear() { color = QColor(); recurrence = ""; }
+    } data;
+
+    void setupUI();
+    void saveTasks();
+    void savePreferences();
+    void loadFiles();
 
     void updateDefaultView();
     void clearInputWindow();
