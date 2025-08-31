@@ -19,11 +19,16 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     ui->setupUi(this);
     connect(ui->completionBox, &QCheckBox::clicked, this, &TaskWidget::onBoxChecked);
 
+    taskCompleted = task->completed(currentDate);
+
+    ui->nameLabel->setStyleSheet(getStyle(taskCompleted));
+    ui->tagsLabel->setStyleSheet(getStyle(taskCompleted));
+    ui->timeLabel->setStyleSheet(getStyle(taskCompleted));
+
     ui->nameLabel->setText(task->name);
     ui->tagsLabel->setText(task->tags.join(", "));
-    ui->completionBox->setCheckState(taskCompleted() ? Qt::Checked : Qt::Unchecked);
+    ui->completionBox->setCheckState(taskCompleted ? Qt::Checked : Qt::Unchecked);
     ui->line->setStyleSheet(Res::taskStyle.arg(task->color));
-    onBoxChecked(taskCompleted());
 
     if (task->type == Res::dueType)
         ui->timeLabel->setText("Begin at " + task->time.time().toString("hh:mm"));
@@ -47,11 +52,6 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     }
 }
 
-bool TaskWidget::taskCompleted()
-{
-    return (task->completion != "");
-}
-
 void TaskWidget::setDate(QDate date)
 {
     currentDate = date;
@@ -59,10 +59,11 @@ void TaskWidget::setDate(QDate date)
 
 void TaskWidget::onBoxChecked(bool checked)
 {
-    task->completion = (checked) ? QDateTime::currentDateTime().toString(Qt::ISODate) : "";
-    ui->nameLabel->setStyleSheet(getStyle(taskCompleted()));
-    ui->tagsLabel->setStyleSheet(getStyle(taskCompleted()));
-    ui->timeLabel->setStyleSheet(getStyle(taskCompleted()));
+    task->checked(checked, currentDate);
+    taskCompleted = checked;
+    ui->nameLabel->setStyleSheet(getStyle(taskCompleted));
+    ui->tagsLabel->setStyleSheet(getStyle(taskCompleted));
+    ui->timeLabel->setStyleSheet(getStyle(taskCompleted));
 }
 
 QString TaskWidget::getStyle(bool checked)

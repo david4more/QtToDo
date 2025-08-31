@@ -26,7 +26,7 @@ private slots:
 
 private:
     QString getStyle(bool checked);
-    bool taskCompleted();
+    bool taskCompleted;
     Ui::TaskWidget *ui;
     Task *task;
     static QDate currentDate;

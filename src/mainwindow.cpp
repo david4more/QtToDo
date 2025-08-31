@@ -133,12 +133,9 @@ void MainWindow::loadFiles()
         prefsFile.close();
 
         QJsonObject obj = doc.object();
-        if (obj.contains("tags"))
-        {
-            QJsonArray tagsArray = obj["tags"].toArray();
-            for (const auto &tag : tagsArray)
-                tags.insert(tag.toString(), false);
-        }
+        QJsonArray tagsArray = obj["tags"].toArray();
+        for (const auto &tag : tagsArray)
+            tags.insert(tag.toString(), false);
     }
 }
 
@@ -151,7 +148,7 @@ void MainWindow::onRecurrenceBox(const QString& text)
         data.recurrence = QString::number(Res::Rec[text]);
         if (text != "None"){
             ui->taskTypeBox->setEnabled(false);
-            ui->taskTypeBox->setCurrentText(Res::defaultType);
+            ui->taskTypeBox->setCurrentText(Res::dueType);
         } else
             ui->taskTypeBox->setEnabled(true);
         return;
@@ -183,7 +180,7 @@ void MainWindow::onRecurrenceBox(const QString& text)
     // handle input
     auto dialogAccept = [&]() {
         ui->taskTypeBox->setEnabled(false);
-        ui->taskTypeBox->setCurrentText(Res::defaultType);
+        ui->taskTypeBox->setCurrentText(Res::dueType);
         dialog.accept();
     };
     connect(intervalBox, &QCheckBox::clicked, &dialog, [&]() { daysBox->setChecked(false); });
@@ -202,7 +199,10 @@ void MainWindow::onRecurrenceBox(const QString& text)
                     if (recurrence == QString::number(value)) {
                         ui->taskRecurrenceBox->setCurrentText(Res::Rec.key(recurrence.toInt()));
                         data.recurrence = recurrence;
-                        dialogAccept();
+                        if (recurrence == "0")
+                            dialog.accept();  // falls into simple cases handling
+                        else
+                            dialogAccept();
                         return;
                     }
                 }
@@ -219,7 +219,7 @@ void MainWindow::onRecurrenceBox(const QString& text)
         {
             for (QCheckBox *cb : daysContainer->findChildren<QCheckBox*>()) {
                 if(cb->isChecked()){
-                    data.recurrence += cb->text();
+                    data.recurrence += cb->text() + " ";
                     buttonText += cb->text() + ", ";
                 }
             }
@@ -273,7 +273,7 @@ void MainWindow::onAddTaskButton()
     auto cmp = [](const Task &a, const Task &b) {
         auto priority = [](const Task &t) {
             if (t.type == Res::defaultType) return 1;
-            if (!t.recurrence.isEmpty()) return 2;
+            if (!t.isRecursive()) return 2;
             return 3;
         };
         int pa = priority(a), pb = priority(b);
@@ -312,7 +312,10 @@ void MainWindow::onPickTagsButton()
 
     connect(button, &QPushButton::clicked, [layout, &dialog, line, this] {
         QString tag = line->text();
-        if (tag == "") return;
+        if (tag == "") {
+            errorStyleTimer(line);
+            return;
+        }
         tags.insert(tag, true);
         QCheckBox *checkBox = new QCheckBox(tag, &dialog);
         checkBox->setCheckState(Qt::Checked);
@@ -378,13 +381,24 @@ void MainWindow::updateDefaultView()
         delete child;
     }
 
-    // here the magic should begin.
-
     TaskWidget::setDate(pickedDate);
     QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
     for (Task &task : tasks)
     {
-        if (task.time.date() != pickedDate && task.type != Res::defaultType)
+        if (task.isRecursive()) {
+            if (task.isInterval()) {
+                if (task.time.date().daysTo(pickedDate) % task.recurrence.toInt() != 0)
+                    continue;
+            }
+            else {
+                QStringList dates = task.recurrence.split(' ', Qt::SkipEmptyParts);
+                QLocale loc;
+                QString day = loc.dayName(pickedDate.dayOfWeek(), QLocale::ShortFormat);
+                if (!dates.contains(day))
+                    continue;
+            }
+        }
+        else if (task.time.date() != pickedDate && task.type != Res::defaultType)
             continue;
 
         TaskWidget *widget = new TaskWidget(this, &task);

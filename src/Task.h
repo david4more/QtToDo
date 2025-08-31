@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QStringList>
 #include <QJsonArray>
+#include <QMessageBox>
 
 struct Task
 {
@@ -50,6 +51,43 @@ struct Task
         return obj;
     }
 
+    const bool isRecursive() const {
+        if (recurrence == "")
+            QMessageBox::critical(nullptr, "Error", "Recurrence field is empty);");
+        return (recurrence != "0");
+    };
+
+    const bool isInterval() const {
+        bool ok = false;
+        recurrence.toInt(&ok);
+        return ok;
+    };
+
+    const bool completed(const QDate &currentDate) const {
+        if (!this->isRecursive()) {
+            return !this->completion.isEmpty();
+        } else {
+            QStringList completedDates = this->completion.split(' ', Qt::SkipEmptyParts);
+            return (completedDates.contains(currentDate.toString(Qt::ISODate)));
+        }
+    };
+
+    const void checked(const bool& checked, const QDate &currentDate)
+    {
+        QString date = currentDate.toString(Qt::ISODate);
+        if (!this->isRecursive()) {
+            this->completion = checked ? date : "";
+        } else {
+            QStringList completedDates = this->completion.split(' ', Qt::SkipEmptyParts);
+
+            if (checked)
+                completedDates.append(date);
+            else
+                completedDates.removeAll(date);
+
+            this->completion = completedDates.join(' ');
+        }
+    }
 private:
     QList<QString> jsonArrayToStringList(const QJsonArray &array) {
         QList<QString> list;
