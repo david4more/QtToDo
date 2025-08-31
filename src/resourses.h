@@ -17,14 +17,16 @@ namespace Res
     inline const QString taskStyle = "border-radius: 2px; background-color: %1;";
     inline const QString tasksFileName = "tasks.json";
     inline const QString prefsFileName = "preferences.json";
-    inline const QString defaultType = "Default", dueType = "Due time", deadlineType = "Deadline";
     inline const QString noTasksStyle = "color: gray; font-style: italic; font-size: 14px;";
+    inline const QString defaultType = "Default", dueType = "Due time", deadlineType = "Deadline";
 
     inline const enum Mode { def, light } mode = Mode::def;
     inline const QMap<QString, int> Rec {
         {"None", 0},
         {"Daily", 1},
         {"Weekly", 7},
+        {"Monthly", 30},
+        {"Yearly", 365},
         {"Custom...", -1} };
     inline const QString getSuffix(int day)
     {

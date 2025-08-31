@@ -44,8 +44,6 @@ void MainWindow::setupUI()
     for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
 
     // date suffix
-
-
     int day = pickedDate.day();
     QString suffix = Res::getSuffix(day);
     QString title = pickedDate.toString("dddd, MMMM d");
@@ -63,10 +61,14 @@ void MainWindow::setupUI()
     ui->taskTypeBox->addItem(Res::dueType);
     ui->taskTypeBox->addItem(Res::deadlineType);
 
+    ui->taskRecurrenceBox->blockSignals(true);
     ui->taskRecurrenceBox->addItem(Res::Rec.key(0));
     ui->taskRecurrenceBox->addItem(Res::Rec.key(1));
     ui->taskRecurrenceBox->addItem(Res::Rec.key(7));
+    ui->taskRecurrenceBox->addItem(Res::Rec.key(30));
+    ui->taskRecurrenceBox->addItem(Res::Rec.key(365));
     ui->taskRecurrenceBox->addItem(Res::Rec.key(-1));
+    ui->taskRecurrenceBox->blockSignals(false);
 }
 
 void MainWindow::saveTasks()
@@ -141,10 +143,114 @@ void MainWindow::loadFiles()
 }
 
 // Slots
+void MainWindow::onRecurrenceBox(const QString& text)
+{
+    // Simple cases handling
+    if (text != Res::Rec.key(-1)) {
+        ui->taskRecurrenceBox->setItemText(ui->taskRecurrenceBox->count() - 1, Res::Rec.key(-1));
+        data.recurrence = QString::number(Res::Rec[text]);
+        if (text != "None"){
+            ui->taskTypeBox->setEnabled(false);
+            ui->taskTypeBox->setCurrentText(Res::defaultType);
+        } else
+            ui->taskTypeBox->setEnabled(true);
+        return;
+    }
+
+    // Window creation
+    QDialog dialog(this);
+    dialog.setWindowTitle("Set recurrence");
+    QFormLayout *layout = new QFormLayout(&dialog);
+
+    QCheckBox* intervalBox = new QCheckBox("Interval", &dialog);
+    QLineEdit* intervalLine = new QLineEdit(&dialog);
+    layout->addRow(intervalBox, intervalLine);
+
+    QCheckBox* daysBox = new QCheckBox("Specific days", &dialog);
+    QWidget* daysContainer = new QWidget(&dialog);
+    QHBoxLayout *daysLayout = new QHBoxLayout;
+    daysContainer->setLayout(daysLayout);
+    layout->addRow(daysBox, daysContainer);
+
+    QLocale loc;
+    for (int i = 1; i <= 7; i++) {
+        QCheckBox* cb = new QCheckBox(loc.dayName(i, QLocale::ShortFormat), &dialog);
+        daysLayout->addWidget(cb);
+    }
+    QPushButton* doneButton = new QPushButton("Done", &dialog);
+    layout->addRow(doneButton);
+
+    // handle input
+    auto dialogAccept = [&]() {
+        ui->taskTypeBox->setEnabled(false);
+        ui->taskTypeBox->setCurrentText(Res::defaultType);
+        dialog.accept();
+    };
+    connect(intervalBox, &QCheckBox::clicked, &dialog, [&]() { daysBox->setChecked(false); });
+    connect(daysBox, &QCheckBox::clicked, &dialog, [&]() { intervalBox->setChecked(false); });
+    connect(doneButton, &QPushButton::clicked, &dialog, [&]() {
+        data.recurrence = "";
+        QString buttonText = "";
+        if (intervalBox->isChecked())
+        {
+            QString recurrence = intervalLine->text();
+            bool ok = false;
+            recurrence.toInt(&ok);
+            if (ok){
+                auto values = Res::Rec.values();
+                for (const auto &value : values) {
+                    if (recurrence == QString::number(value)) {
+                        ui->taskRecurrenceBox->setCurrentText(Res::Rec.key(recurrence.toInt()));
+                        data.recurrence = recurrence;
+                        dialogAccept();
+                        return;
+                    }
+                }
+
+                buttonText = "Every " + recurrence + " days";
+                data.recurrence = recurrence;
+            }
+            else {
+                errorStyleTimer(intervalLine);
+                return;
+            }
+        }
+        else if (daysBox->isChecked())
+        {
+            for (QCheckBox *cb : daysContainer->findChildren<QCheckBox*>()) {
+                if(cb->isChecked()){
+                    data.recurrence += cb->text();
+                    buttonText += cb->text() + ", ";
+                }
+            }
+            if (data.recurrence.isEmpty()){
+                errorStyleTimer(daysContainer);
+                return;
+            }
+            else
+                buttonText.chop(2);
+        }
+        else{
+            errorStyleTimer(daysBox);
+            errorStyleTimer(intervalBox);
+            return;
+        }
+        ui->taskRecurrenceBox->blockSignals(true);
+        ui->taskRecurrenceBox->setItemText(ui->taskRecurrenceBox->count() - 1, buttonText);
+        ui->taskRecurrenceBox->blockSignals(false);
+        dialogAccept();
+    });
+
+    if (dialog.exec() == QDialog::Rejected){
+        ui->taskRecurrenceBox->setCurrentIndex(0);
+        data.recurrence = 0;
+    }
+}
+
 void MainWindow::onAddTaskButton()
 {
     if (ui->taskNameEdit->text().trimmed().isEmpty()) {
-        ui->taskNameEdit->setStyleSheet(Res::backgroundStyle.arg(Res::error));
+        errorStyleTimer(ui->taskNameEdit);
         return;
     }
 
@@ -159,77 +265,68 @@ void MainWindow::onAddTaskButton()
         currentTags,
         ui->taskTypeBox->currentText(),
         QDateTime(ui->taskDateEdit->date(), ui->taskTimeEdit->time()),
-        data.recurrence,
         data.color.name(),
         ui->taskDescriptionEdit->toPlainText(),
-        false);
+        "",
+        data.recurrence);
 
-    auto it = std::lower_bound(tasks.begin(), tasks.end(), task,
-                               [](const Task &a, const Task &b){ return a.time < b.time; });
+    auto cmp = [](const Task &a, const Task &b) {
+        auto priority = [](const Task &t) {
+            if (t.type == Res::defaultType) return 1;
+            if (!t.recurrence.isEmpty()) return 2;
+            return 3;
+        };
+        int pa = priority(a), pb = priority(b);
+        if (pa != pb) return pa < pb;
+        return a.time < b.time;
+    };
+
+    auto it = std::lower_bound(tasks.begin(), tasks.end(), task, cmp);
     tasks.insert(it, task);
 
     if (Res::mode == Res::Mode::def) saveTasks();
     changeState(State::default_view);
 }
 
-void MainWindow::onRecurrenceBox(const QString& text)
-{
-    if (text != Res::Rec.key(-1)) {
-        data.recurrence = text;
-        return;
-    }
-
-
-    // here's the magic
-}
-
-void MainWindow::onDateClick(const QDate &date)
-{
-    pickedDate = date;
-    updateDefaultView();
-}
-
 void MainWindow::onPickTagsButton()
 {
-    // QScopedPointer<QDialog> dialog = new QDialog(this);
-    QDialog *dialog = new QDialog(this);
-    dialog->setWindowTitle("Name thy tag");
-    QVBoxLayout *layout = new QVBoxLayout(dialog);
+    QDialog dialog(this);
+    dialog.setWindowTitle("Select tags");
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
 
     for (auto it = tags.cbegin(); it != tags.cend(); ++it) {
-        QCheckBox *checkBox = new QCheckBox(it.key(), dialog);
+        QCheckBox *checkBox = new QCheckBox(it.key(), &dialog);
         checkBox->setChecked(it.value());
         layout->addWidget(checkBox);
     }
 
     QHBoxLayout *hLayout = new QHBoxLayout;
-    QLineEdit *line = new QLineEdit(dialog);
-    QPushButton *button = new QPushButton("Add...", dialog);
-    QPushButton *doneButton = new QPushButton("Done", dialog);
+    QLineEdit *line = new QLineEdit(&dialog);
+    QPushButton *button = new QPushButton("Add...", &dialog);
+    QPushButton *doneButton = new QPushButton("Done", &dialog);
 
     hLayout->addWidget(line);
     hLayout->addWidget(button);
     layout->addLayout(hLayout);
     layout->addWidget(doneButton);
 
-    connect(button, &QPushButton::clicked, [layout, dialog, line, this] {
+    connect(button, &QPushButton::clicked, [layout, &dialog, line, this] {
         QString tag = line->text();
         if (tag == "") return;
         tags.insert(tag, true);
-        QCheckBox *checkBox = new QCheckBox(tag, dialog);
+        QCheckBox *checkBox = new QCheckBox(tag, &dialog);
         checkBox->setCheckState(Qt::Checked);
         layout->insertWidget(layout->count() - 2, checkBox);
         line->clear();
     });
 
-    connect(doneButton, &QPushButton::clicked, [dialog, this] {
-        for (QCheckBox *cb : dialog->findChildren<QCheckBox*>())
+    connect(doneButton, &QPushButton::clicked, [&dialog, this] {
+        for (QCheckBox *cb : dialog.findChildren<QCheckBox*>())
             tags[cb->text()] = cb->isChecked();
-
-        dialog->close();
+        dialog.close();
     });
 
-    dialog->exec();
+    dialog.exec();
 }
 
 void MainWindow::onPickColorButton()
@@ -247,11 +344,14 @@ void MainWindow::onPickColorButton()
     if (dialog.exec() != QDialog::Accepted)
         return;
 
-    QColor color = dialog.selectedColor();
-    if (color.isValid()){
-        data.color = color;
-        ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(data.color.name()));
-    }
+    data.color = dialog.selectedColor();
+    ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(data.color.name()));
+}
+
+void MainWindow::onDateClick(const QDate &date)
+{
+    pickedDate = date;
+    updateDefaultView();
 }
 
 void MainWindow::onNewTaskButton()
@@ -297,7 +397,7 @@ void MainWindow::updateDefaultView()
             deadlinesTasks.append(widget);
     }
 
-    auto setTasks = [this, layout](const QVector<TaskWidget*> tasksP, const QString type){
+    auto setTasks = [this, layout](const QVector<TaskWidget*> tasksP, const QString type) {
         if (tasksP.empty()) return;
         QLabel *label = new QLabel();
         label->setText(type);
@@ -337,7 +437,9 @@ void MainWindow::clearInputWindow()
     ui->taskTimeEdit->setTime(QTime::currentTime());
     ui->taskColorButton->setStyleSheet(Res::colorStyle.arg(Res::defaultColor));
     ui->taskDescriptionEdit->clear();
+
     ui->taskRecurrenceBox->setCurrentIndex(0);
+    ui->taskTypeBox->setEnabled(true);
 }
 
 void MainWindow::changeState(State state)
@@ -359,7 +461,27 @@ void MainWindow::changeState(State state)
     ui->stackedWidget->setCurrentIndex(state);
 }
 
+void MainWindow::errorStyleTimer(QWidget* widget)
+{
+    QTimer* timer = widget->findChild<QTimer*>("errorTimer");
+    if (!timer) {
+        timer = new QTimer(widget);
+        timer->setObjectName("errorTimer");
+        timer->setSingleShot(true);
+        connect(timer, &QTimer::timeout, [widget]() {
+            if (widget) widget->setStyleSheet("");
+        });
+    }
 
+    widget->setStyleSheet(Res::backgroundStyle.arg(Res::error));
+    timer->stop();
+    timer->start(2000);
+}
+
+void MainWindow::d::clear()
+{
+    color = Res::defaultColor; recurrence = QString::number(Res::Rec["None"]);
+}
 
 
 

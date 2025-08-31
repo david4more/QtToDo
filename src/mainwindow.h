@@ -18,6 +18,8 @@
 #include <QCheckBox>
 #include <QScopedPointer>
 #include <QRandomGenerator>
+#include <QTimer>
+#include <QPointer>
 
 class Task;
 class TaskWidget;
@@ -54,10 +56,10 @@ private:
     enum State { default_view, new_task } state = State::default_view;
 
     QDate pickedDate;
-    struct {
+    struct d {
         QColor color;
         QString recurrence;
-        void clear() { color = QColor(); recurrence = ""; }
+        void clear();
     } data;
 
     void setupUI();
@@ -65,11 +67,11 @@ private:
     void savePreferences();
     void loadFiles();
 
+    void addTag(const QString &tag);
     void updateDefaultView();
     void clearInputWindow();
     void changeState(State state);
-    void addTag(const QString &tag);
-
+    void errorStyleTimer(QWidget* widget);
 };
 
 #endif // MAINWINDOW_H
