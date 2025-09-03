@@ -179,11 +179,6 @@ QCalendarWidget QHeaderView {
            <widget class="QListWidget" name="deadlinesListWidget">
             <item>
              <property name="text">
-              <string>Recurrence implementation</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
               <string>Task editing</string>
              </property>
             </item>
@@ -194,12 +189,17 @@ QCalendarWidget QHeaderView {
             </item>
             <item>
              <property name="text">
-              <string>Optimise file interaction</string>
+              <string>Optimise file loading</string>
              </property>
             </item>
             <item>
              <property name="text">
               <string>Pomodoro</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Synchronisation and mobile app</string>
              </property>
             </item>
            </widget>
@@ -240,8 +240,8 @@ QCalendarWidget QHeaderView {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>66</width>
-             <height>18</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <property name="sizePolicy">

@@ -8,102 +8,133 @@
 #include <QStringList>
 #include <QJsonArray>
 #include <QMessageBox>
+#include "Resourses.h"
 
-struct Task
+class Task
 {
+public:
     QString name;
-    QList<QString> tags;
-    QString type;
-    QDateTime time;
-    QString color;
     QString description;
-    QString completion;
 
-    QString recurrence;
+    Task(QString name, QVector<QString> tags, Res::Type type, QDateTime time, QColor color, QString description, Res::Rec recurrence)
+        : name(std::move(name)),
+        tags(std::move(tags)),
+        type(std::move(type)),
+        time(std::move(time)),
+        color(std::move(color)),
+        description(std::move(description)),
+        recurrence(std::move(recurrence))
+    {
+        if (recurrence != Res::Rec::CustomDays)
+            recInterval = static_cast<int>(recurrence);
+    }
 
-    Task (QString name, QList<QString> tags, QString type, QDateTime time, QString color, QString description, QString completion, QString recurrence)
-        : name(name), tags(tags), type(type), time(time), color(color), description(description), completion(completion), recurrence(recurrence) {};
+    void setRecInterval(const int& x) { recInterval = x; }
+    void setRecDays(const QSet<Qt::DayOfWeek>& x) { recDays = x; }
 
     Task(const QJsonObject &obj) :
         name(obj["name"].toString()),
-        tags(jsonArrayToStringList(obj["tags"].toArray())),
-        type(obj["type"].toString()),
+        type(Res::typeStrings.key(obj["type"].toString())),
         time(QDateTime::fromString(obj["time"].toString(), Qt::ISODate)),
         color(obj["color"].toString()),
-        description(obj["description"].toString()),
-        completion(obj["completion"].toString()),
+        description(obj["description"].toString())
+    {
+        QJsonArray tagsArray = obj["tags"].toArray();
+        for (const auto &val : tagsArray)
+            tags.append(val.toString());
 
-        recurrence(obj["recurrence"].toString())
-    {}
+        QJsonArray completionArray = obj["completion"].toArray();
+        for (const auto &val : completionArray)
+            completion.insert(QDate::fromString(val.toString(), Qt::ISODate));
+
+        recurrence = Res::recStrings.key(obj["recurrence"].toString());
+        if (recurrence == Res::Rec::CustomInterval)
+            recInterval = obj["rec interval"].toInt();
+        else if (recurrence == Res::Rec::CustomDays) {
+            QJsonArray days = obj["rec days"].toArray();
+            for (const auto &val : days)
+                recDays.insert(static_cast<Qt::DayOfWeek>(val.toInt()));
+        }
+
+        if (recurrence != Res::Rec::CustomDays)
+            recInterval = static_cast<int>(recurrence);
+    }
 
     QJsonObject toJson() const {
         QJsonObject obj;
         obj["name"] = name;
         obj["tags"] = QJsonArray::fromStringList(tags);
-        obj["type"] = type;
+        obj["type"] = Res::typeStrings.value(type);
         obj["time"] = time.toString(Qt::ISODate);
-        obj["color"] = color;
+        obj["color"] = color.name();
         obj["description"] = description;
-        obj["completion"] = completion;
 
-        obj["recurrence"] = recurrence;
+        // and with that
+        QJsonArray completionArray;
+        for (const auto &d : completion)
+            completionArray.append(d.toString(Qt::ISODate));
+        obj["completion"] = completionArray;
+
+        obj["recurrence"] = Res::recStrings[recurrence];
+        if (recurrence == Res::Rec::CustomInterval)
+            obj["rec interval"] = recInterval;
+        else if (recurrence == Res::Rec::CustomDays){
+            QJsonArray daysArray;
+            for (const auto& val : recDays)
+                daysArray.append(val);
+            obj["rec days"] = daysArray;
+        }
 
         return obj;
     }
 
-    const bool isRecursive() const {
-        if (recurrence == "")
-            QMessageBox::critical(nullptr, "Error", "Recurrence field is empty);");
-        return (recurrence != "0");
-    };
-
-    const bool isInterval() const {
-        bool ok = false;
-        recurrence.toInt(&ok);
-        return ok;
-    };
-
-    const bool completed(const QDate &currentDate) const {
-        if (!this->isRecursive()) {
-            return !this->completion.isEmpty();
-        } else {
-            QStringList completedDates = this->completion.split(' ', Qt::SkipEmptyParts);
-            return (completedDates.contains(currentDate.toString(Qt::ISODate)));
-        }
-    };
-
-    const void checked(const bool& checked, const QDate &currentDate)
+    void checked(const bool& checked, const QDate &currentDate)
     {
-        QString date = currentDate.toString(Qt::ISODate);
-        if (!this->isRecursive()) {
-            this->completion = checked ? date : "";
-        } else {
-            QStringList completedDates = this->completion.split(' ', Qt::SkipEmptyParts);
-
+        if (recurrence == Res::Rec::None) {
             if (checked)
-                completedDates.append(date);
+                completion.insert(currentDate);
             else
-                completedDates.removeAll(date);
-
-            this->completion = completedDates.join(' ');
+                completion.clear();
+        } else {
+            if (checked)
+                completion.insert(currentDate);
+            else
+                completion.remove(currentDate);
         }
     }
-private:
-    QList<QString> jsonArrayToStringList(const QJsonArray &array) {
-        QList<QString> list;
-        list.reserve(array.size());
-        for (const auto &value : array)
-            list.append(value.toString());
-        return list;
-    }
-
-    // NOT YET USED
-    /*
 
     void addTag(const QString &tag) { if (!tags.contains(tag)) tags.append(tag); }
 
     void removeTag(const QString &tag) { tags.removeAll(tag); }
-    */
+
+    // info/getters
+    bool isCompleted(const QDate &currentDate) const {
+        if (recurrence == Res::Rec::None)
+            return !this->completion.isEmpty();
+        else
+            return completion.contains(currentDate);
+    };
+    bool isRecursive() const { return (recurrence != Res::Rec::None); }
+
+    QDateTime getTime() const { return time; }
+    QList<QString> getTags() const {return tags; }
+    Res::Type getType() const { return type; }
+    Res::Rec getRec() const { return recurrence; }
+    QString getColor() const { return color.name(); }
+    int getRecInterval() const { return recInterval; }
+    QSet<Qt::DayOfWeek> getRecDays() const { return recDays; }
+    QSet<QDate> getCompletion() const { return completion; }
+
+private:
+    Res::Rec recurrence = Res::Rec::None;
+    QSet<Qt::DayOfWeek> recDays{};
+    int recInterval = 0;
+    QSet<QDate> completion{};
+
+    QColor color;
+    Res::Type type;
+    QVector<QString> tags;
+    QDateTime time;
 };
 
 

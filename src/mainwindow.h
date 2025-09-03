@@ -54,13 +54,7 @@ private:
     QVector<Task> tasks;
     QMap<QString, bool> tags;
     enum State { default_view, new_task } state = State::default_view;
-
     QDate pickedDate;
-    struct d {
-        QColor color;
-        QString recurrence;
-        void clear();
-    } data;
 
     void setupUI();
     void saveTasks();

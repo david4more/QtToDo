@@ -26,6 +26,7 @@ private slots:
 
 private:
     QString getStyle(bool checked);
+    void updateStyle();
     bool taskCompleted;
     Ui::TaskWidget *ui;
     Task *task;

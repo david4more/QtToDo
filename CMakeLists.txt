@@ -21,7 +21,7 @@ set(PROJECT_SOURCES
     src/TaskWidget/taskwidget.h
     src/TaskWidget/taskwidget.ui
     src/Task.h
-    src/resourses.h
+    src/Resourses.h
 )
 
 add_executable(ToDoList
