@@ -243,8 +243,10 @@ void MainWindow::onRecurrenceBox(const QString& text)
         dialogAccept();
     });
 
-    if (dialog.exec() == QDialog::Rejected)
+    if (dialog.exec() == QDialog::Rejected){
         ui->taskRecurrenceBox->setCurrentIndex(0);
+        ui->taskTypeBox->setEnabled(true);
+    }
 }
 
 void MainWindow::onAddTaskButton()
