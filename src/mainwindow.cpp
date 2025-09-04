@@ -243,7 +243,7 @@ void MainWindow::onRecurrenceBox(const QString& text)
         dialogAccept();
     });
 
-    if (dialog.exec() == QDialog::Rejected){
+    if (dialog.exec() == QDialog::Rejected) {
         ui->taskRecurrenceBox->setCurrentIndex(0);
         ui->taskTypeBox->setEnabled(true);
     }
@@ -414,22 +414,23 @@ void MainWindow::updateDefaultView()
     QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
     for (Task &task : tasks)
     {
-        bool valid = true;
+        bool valid;
         switch (task.getRec())
         {
         case Rec::None:
-            if (task.getTime().date() != pickedDate && task.getType() != Type::Default)
-                valid = false;
-            break;
+            valid = (task.getTime().date() == pickedDate || task.getType() == Type::Default); break;
+        case Rec::Daily:
+            valid = true; break;
+        case Rec::Weekly:
+            valid = (task.getTime().date().dayOfWeek() == pickedDate.dayOfWeek()); break;
+        case Rec::Monthly:
+            valid = (task.getTime().date().day() == pickedDate.day()); break;
+        case Rec::Yearly:
+            valid = (task.getTime().date().dayOfYear() == pickedDate.dayOfYear()); break;
         case Rec::CustomDays:
-            if (!task.getRecDays().contains(static_cast<Qt::DayOfWeek>(pickedDate.dayOfWeek())))
-                valid = false;
-            break;
-            // also need to handle monthly and yearly cases
-        default:
-            if (task.getTime().date().daysTo(pickedDate) % task.getRecInterval() != 0)
-                valid = false;
-            break;
+            valid = (task.getRecDays().contains(static_cast<Qt::DayOfWeek>(pickedDate.dayOfWeek()))); break;
+        case Rec::CustomInterval:
+            valid = (task.getTime().date().daysTo(pickedDate) % task.getRecInterval() == 0); break;
         }
         if (!valid)
             continue;

@@ -20,6 +20,7 @@
 #include <QRandomGenerator>
 #include <QTimer>
 #include <QPointer>
+#include <QFileInfo>
 
 class Task;
 class TaskWidget;
