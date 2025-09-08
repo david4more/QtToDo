@@ -251,7 +251,7 @@ void MainWindow::onRecurrenceBox(const QString& text)
 
 void MainWindow::onAddTaskButton()
 {
-    if (ui->taskNameEdit->text().trimmed().isEmpty()) {
+    if (ui->taskNameEdit->text().trimmed().isEmpty() || ui->taskNameEdit->text().size() > 50) {
         errorStyleTimer(ui->taskNameEdit);
         return;
     }
@@ -313,7 +313,7 @@ void MainWindow::onAddTaskButton()
     auto it = std::lower_bound(tasks.begin(), tasks.end(), task, cmp);
     tasks.insert(it, task);
 
-    if (Res::mode == Res::Mode::Default) saveTasks();
+    // if (Res::mode == Res::Mode::Default) saveTasks();
     changeState(State::default_view);
 }
 
@@ -341,7 +341,7 @@ void MainWindow::onPickTagsButton()
 
     connect(button, &QPushButton::clicked, [layout, &dialog, line, this] {
         QString tag = line->text();
-        if (tag == "") {
+        if (tag == "" || tag.size() > 25) {
             errorStyleTimer(line);
             return;
         }

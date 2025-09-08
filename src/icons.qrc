@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="expand">TaskWidget/expand.svg</file>
+    </qresource>
+</RCC>

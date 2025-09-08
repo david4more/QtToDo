@@ -25,6 +25,7 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     ui->tagsLabel->setText(task->getTags().join(", "));
     ui->completionBox->setCheckState(taskCompleted ? Qt::Checked : Qt::Unchecked);
     ui->line->setStyleSheet(Res::Style::task.arg(task->getColor()));
+    ui->expandButton->setIcon(QIcon(":/icons/expand"));
 
     switch (task->getType())
     {
