@@ -1,48 +1,35 @@
 # To-Do List App
 
-A simple Qt Widgets To-Do List app to manage daily tasks efficiently.
+A simple Qt Widgets To-Do List app, built with Qt Creator.
 
 ## Features
 
-- **Main Window**
-  - Split view:
-    - **Left pane:** Calendar to switch days  
-    - **Right pane:** To-Do List for the selected day
-  - Menu bar:
-    - **Add Task**: create new tasks with optional deadline (modal dialog)
-    - **Settings**: manage completed tasks, theme, and font size
+- **Left panel:** Calendar navigator, today's tasks, upcoming deadlines  
+- **Default view:** picked day's due tasks and deadlines, plus all default tasks
+- **New Task form:** configure task's name, tags, type, recurrence, time, color, and description
+- **Settings form:** configure default color and UI features
 
-- **New Task Dialog**
-  - Enter task name, time and optionally description, color and deadline
+- Expand task to read recurrence/completion and read/write description, delete button
+- Tasks and preferences are stored in JSON
+- Recurrence: daily, weekly, monthly, yearly or custom: days (Mon, Wed, Fri) or interval (Every 2 days)
 
-- **Data Storage**
-  - Tasks stored in memory, with optional save/load in JSON
+## Screenshots
 
-- **Planned Features**
+## Screenshots
 
-  - checklist of tasks for day, day's results (what/when/was task accomplished)
+| ![Two tasks expanded](https://github.com/user-attachments/assets/c47394a1-3841-4cde-bcae-ddb4f76e84c8) 
+| ![Default view](https://github.com/user-attachments/assets/1c8f4986-f6ca-4be9-979f-aad78eecd402) 
+| ![New task's recurrence](https://github.com/user-attachments/assets/25b95857-80de-4545-820c-f00a8fdb88d0) |
+
+More screenshots: see [Issues → Screenshots](https://github.com/david4more/Thinker/issues/1)
+
+## Possible improvements
+
+  - pomodoro timer
   - notifications
-  - pomodoro timer, tags, color coding, deadlines
-  - expected time spent, Pomodoro tracking, completition status, subtasks
-  - custom month switching, month label above calendar
-  - parsing and conversion from .txt
-  - list export
-  - time to sleep
-  - daily schedule via recurring tasks (bedtime, work, gym, etc.)
   - mobile version, synchronization
-  - language processing (naming task "celebrate bd monday" will add the task on monday)
-  - change from .json to optimise tasks list update
-  
-- **Feature implementation plans**
-  - Recurrence Handling
-    - Store recurrence as a QString
-    - First word: recurrence type (names or number of days)
-    - Following words: dates when the task was completed
-
-  - File I/O Optimization
-    - Store recurring and standard tasks at the beginning of the JSON file, then order by date
-    - On update, iterate only through tasks relevant to the selected date
-    
-## Technical Stack
-
-- **C++17**, **Qt Widgets (Qt 6.9.1)**, **CMake**, **Git**
+  - use database instead of .json
+  - expected time spent + Pomodoro tracking
+  - subtasks
+  - parsing and conversion from .txt
+  - language processing (naming task "celebrate bd monday" will add the task on next monday)
