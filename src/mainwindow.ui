@@ -216,7 +216,7 @@ QCalendarWidget QHeaderView {
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="default_view">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -230,8 +230,8 @@ QCalendarWidget QHeaderView {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>453</width>
+             <height>562</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -518,8 +518,20 @@ QCalendarWidget QHeaderView {
   </widget>
  </widget>
  <tabstops>
-  <tabstop>newTaskButton</tabstop>
+  <tabstop>taskNameEdit</tabstop>
+  <tabstop>taskTagsButton</tabstop>
+  <tabstop>taskTypeBox</tabstop>
+  <tabstop>taskDateEdit</tabstop>
+  <tabstop>taskTimeEdit</tabstop>
+  <tabstop>taskRecurrenceBox</tabstop>
+  <tabstop>taskColorButton</tabstop>
+  <tabstop>taskDescriptionEdit</tabstop>
   <tabstop>addTaskButton</tabstop>
+  <tabstop>calendarWidget</tabstop>
+  <tabstop>tasksListWidget</tabstop>
+  <tabstop>deadlinesListWidget</tabstop>
+  <tabstop>newTaskButton</tabstop>
+  <tabstop>scrollArea</tabstop>
  </tabstops>
  <resources/>
  <connections/>

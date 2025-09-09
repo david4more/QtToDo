@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QVBoxLayout>
+#include <QTimer>
 
 class Task;
 

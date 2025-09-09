@@ -32,10 +32,8 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     ui->completionBox->setCheckState(taskCompleted ? Qt::Checked : Qt::Unchecked);
     ui->line->setStyleSheet(Res::Style::task.arg(task->getColor()));
     ui->expandButton->setIcon(QIcon(":/icons/expand"));
-    ui->expandingWidget->hide();
     ui->deleteButton->setIcon(QIcon(":/icons/delete"));
     ui->descriptionText->setText(task->getDescription());
-    ui->expandingWidget->setVisible(false);
 
     QString text;
     switch (task->getRec())
@@ -91,6 +89,12 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
             ui->timeLabel->setText(task->getTime().date().toString("dd.MM.yyyy") + " at " + task->getTime().time().toString("hh:mm"));
         break;
     }
+
+    QTimer::singleShot(50, this, [this]() {
+        ui->expandingWidget->setVisible(true);
+        ui->descriptionText->setFixedHeight(ui->descriptionText->document()->size().height() + 5);
+        ui->expandingWidget->setVisible(false);
+    });
 }
 
 void TaskWidget::onDeleteButton()
