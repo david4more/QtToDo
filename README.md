@@ -6,14 +6,12 @@ A simple Qt Widgets To-Do List app, built with Qt Creator.
 
 - **Left panel:** Calendar navigator, today's tasks, upcoming deadlines  
 - **Default view:** picked day's due tasks and deadlines, plus all default tasks
+  - Expand task to read recurrence/completion and read/write description, delete button
 - **New Task form:** configure task's name, tags, type, recurrence, time, color, and description
+  - Recurrence: daily, weekly, monthly, yearly or custom: days (Mon, Wed, Fri) or interval (Every 2 days)
 - **Settings form:** configure default color and UI features
+  - Tasks and preferences are stored in JSON
 
-- Expand task to read recurrence/completion and read/write description, delete button
-- Tasks and preferences are stored in JSON
-- Recurrence: daily, weekly, monthly, yearly or custom: days (Mon, Wed, Fri) or interval (Every 2 days)
-
-## Screenshots
 
 ## Screenshots
 
