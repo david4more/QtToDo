@@ -56,7 +56,7 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
         text = "Every " + QString::number(task->getRecInterval()) + " days.";
         break;
     case Res::Rec::None:
-        ui->titleLabel->setText("Completion date");
+        ui->titleLabel->setText("Completion");
         break;
     default:
         text = Res::recStrings[task->getRec()];
@@ -64,6 +64,7 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     }
     ui->recurrenceLabel->setText(text);
     updateStyle();
+    ui->expandingWidget->setVisible(false);
 
     switch (task->getType())
     {
@@ -90,7 +91,6 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
         break;
     }
 
-    ui->expandingWidget->setVisible(false);
 }
 
 void TaskWidget::onDeleteButton()

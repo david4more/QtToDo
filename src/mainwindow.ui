@@ -253,8 +253,8 @@ QCalendarWidget QHeaderView {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>453</width>
-             <height>562</height>
+             <width>66</width>
+             <height>18</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -542,35 +542,35 @@ QCalendarWidget QHeaderView {
           <property name="title">
            <string>Settings</string>
           </property>
-          <layout class="QFormLayout" name="formLayout_2">
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>Default color</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
             <widget class="QPushButton" name="settingsColorButton">
              <property name="text">
-              <string>Pick...</string>
+              <string>Pick default color...</string>
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Show completed tasks</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
+           <item>
             <widget class="QCheckBox" name="settingsTasksBox">
              <property name="layoutDirection">
               <enum>Qt::LayoutDirection::LeftToRight</enum>
              </property>
              <property name="text">
-              <string/>
+              <string>Show completed tasks</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="settingsLightBox">
+             <property name="text">
+              <string>Light mode</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="settingsProfessionalBox">
+             <property name="text">
+              <string>Professional mode</string>
              </property>
             </widget>
            </item>

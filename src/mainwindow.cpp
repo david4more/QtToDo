@@ -35,6 +35,8 @@ void MainWindow::setupUI()
     connect(ui->settingsDoneButton, &QPushButton::clicked, this, [this](){ if (state != State::settings) changeState(State::settings); else changeState(State::default_view); });
     connect(ui->settingsTasksBox, &QCheckBox::clicked, this, [this](bool checked){ showCompletedTasks = checked; });
     connect(ui->settingsColorButton, &QPushButton::clicked, this, &MainWindow::onSettingsColorButton);
+    connect(ui->settingsLightBox, &QCheckBox::clicked, this, [this](bool checked){ Res::lightMode = checked; } );
+    connect(ui->settingsProfessionalBox, &QCheckBox::clicked, this, [this](bool checked){ Res::professionalMode = checked; } );
 
     // calendar styling
     ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
@@ -75,6 +77,8 @@ void MainWindow::setupUI()
     ui->settingsButton->setStyleSheet("QToolButton { padding: 0px; margin: 0px; } QToolButton:hover { background-color: #606060 }");
     ui->settingsColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
     ui->settingsTasksBox->setChecked(showCompletedTasks);
+    ui->settingsLightBox->setChecked(Res::lightMode);
+    ui->settingsProfessionalBox->setChecked(Res::professionalMode);
 }
 
 void MainWindow::saveTasks()
@@ -112,6 +116,8 @@ void MainWindow::savePreferences()
     obj["tags"] = tagsArray;
     obj["default color"] = defaultColor.name();
     obj["show completed tasks"] = showCompletedTasks;
+    obj["professional mode"] = professionalMode;
+    obj["light mode"] = lightMode;
     QJsonDocument doc(obj);
 
     prefsFile.write(doc.toJson());
@@ -144,7 +150,10 @@ void MainWindow::loadFiles()
         QJsonArray tagsArray = obj["tags"].toArray();
         for (const auto &tag : tagsArray)
             tags.insert(tag.toString(), false);
+
         showCompletedTasks = obj.contains("show completed tasks") ? obj["show completed tasks"].toBool() : true;
+        professionalMode = obj.contains("professional mode") ? obj["professional mode"].toBool() : false;
+        lightMode = obj.contains("light mode") ? obj["light mode"].toBool() : false;
         defaultColor = (obj.contains("default color") && QColor(obj["default color"].toString()).isValid()) ? QColor(obj["default color"].toString()) : QColor(Res::Color::def);
     }
 }
@@ -458,22 +467,26 @@ void MainWindow::updateLeftPanel()
     ui->tasksListWidget->clear();
     ui->deadlinesListWidget->clear();
     for (const auto task : tasks) {
-        if (task->getDateTime().date() == QDate::currentDate()) {
-            if (task->getType() == Type::DueTime)
+        if (task->getType() == Type::DueTime && task->getDateTime().date() == QDate::currentDate())
                 ui->tasksListWidget->addItem(task->getName());
-            else if (task->getType() == Type::Deadline)
-                ui->deadlinesListWidget->addItem(task->getName());
+        else if (task->getType() == Type::Deadline && ui->deadlinesListWidget->count() < 8) {
+            auto currentDate = QDate::currentDate();
+            auto taskDate = task->getDateTime().date();
+            if (currentDate <= taskDate && currentDate.daysTo(taskDate) <= 90)
+                ui->deadlinesListWidget->addItem(task->getName() + ", " + task->getDateTime().toString("dd-MM HH:mm"));
         }
     }
     if (ui->tasksListWidget->count() == 0)
-        ui->tasksListWidget->addItem(noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
+        ui->tasksListWidget->addItem(professionalMode ? "No tasks today" : noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
 
     if (ui->deadlinesListWidget->count() == 0)
-        ui->deadlinesListWidget->addItem(noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
+        ui->deadlinesListWidget->addItem(professionalMode ? "No deadlines within three months" : noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
 }
 
 void MainWindow::updateDefaultView()
 {
+    updateLeftPanel();
+
     QWidget *container = new QWidget;
     QVBoxLayout *layout = new QVBoxLayout(container);
     layout->setAlignment(Qt::AlignTop);

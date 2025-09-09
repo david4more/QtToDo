@@ -72,6 +72,7 @@ namespace Res
     };
 
     inline bool lightMode = false;
+    inline bool professionalMode = false;
 };
 
 #endif // RESOURSES_H

@@ -57,7 +57,6 @@ private:
     QMap<QString, bool> tags;
     enum State { default_view, new_task, settings } state = State::default_view;
     QDate pickedDate;
-    // TODO: bool lightMode;
     bool showCompletedTasks;
     QColor defaultColor;
 
