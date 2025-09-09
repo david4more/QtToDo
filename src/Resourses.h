@@ -4,6 +4,7 @@
 #include <QString>
 #include <QMap>
 #include <QMessageBox>
+#include <QDate>
 
 namespace Res
 {
@@ -42,8 +43,8 @@ namespace Res
         { Rec::Weekly, "Weekly" },
         { Rec::Monthly, "Monthly" },
         { Rec::Yearly, "Yearly" },
-        { Rec::CustomInterval, "Custom" },
-        { Rec::CustomDays, "Custom" }
+        { Rec::CustomInterval, "Custom interval" },
+        { Rec::CustomDays, "Custom days" }
     };
 
     inline constexpr const char* getSuffix(int day) {
@@ -51,6 +52,14 @@ namespace Res
         if ((day % 10 == 2) && (day != 12)) return "nd";
         if ((day % 10 == 3) && (day != 13)) return "rd";
         return "th";
+    }
+    inline QString getFancyDate(const QDate& date) {
+        int day = date.day();
+        QString suffix = getSuffix(day);
+        QString title = date.toString("dddd, MMMM d yyyy");
+        title.replace(QString::number(day), QString::number(day) + suffix);
+
+        return title;
     }
 
     inline const QStringList noTasksPlaceholders = {

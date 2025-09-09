@@ -179,17 +179,7 @@ QCalendarWidget QHeaderView {
            <widget class="QListWidget" name="deadlinesListWidget">
             <item>
              <property name="text">
-              <string>Task editing</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Completed hide/delete(man/auto)</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Optimise file loading</string>
+              <string>Completed hide</string>
              </property>
             </item>
             <item>
@@ -240,8 +230,8 @@ QCalendarWidget QHeaderView {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>66</width>
-             <height>18</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <property name="sizePolicy">

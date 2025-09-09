@@ -45,11 +45,7 @@ void MainWindow::setupUI()
     for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
 
     // date suffix
-    int day = pickedDate.day();
-    QString suffix = getSuffix(day);
-    QString title = pickedDate.toString("dddd, MMMM d");
-    title.replace(QString::number(day), QString::number(day) + suffix);
-    ui->todayGroup->setTitle(title + ": tasks");
+    ui->todayGroup->setTitle(Res::getFancyDate(pickedDate) + ": tasks");
 
     // everything else
     ui->tasksListWidget->addItem(noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
@@ -74,8 +70,8 @@ void MainWindow::setupUI()
 void MainWindow::saveTasks()
 {
     QJsonArray tasksArray;
-    for (const Task &t : tasks)
-        tasksArray.append(t.toJson());
+    for (const Task *t : tasks)
+        tasksArray.append(t->toJson());
 
     QSaveFile file(Res::Files::tasks);
     if (!file.open(QIODevice::WriteOnly)) {
@@ -122,7 +118,7 @@ void MainWindow::loadFiles()
 
         QJsonArray arr = doc.array();
         for (const QJsonValue &val : arr)
-            tasks.append(Task(val.toObject()));
+            tasks.append(new Task(val.toObject()));
     }
 
     // reading preferences
@@ -143,8 +139,8 @@ void MainWindow::loadFiles()
 void MainWindow::onRecurrenceBox(const QString& text)
 {
     // Simple cases handling
-    if (text != recStrings[Rec::CustomDays] && text != recStrings[Rec::CustomInterval]) {
-        ui->taskRecurrenceBox->setItemText(ui->taskRecurrenceBox->count() - 1, recStrings[Rec::CustomDays]);
+    if (recStrings.values().contains(text) && text != recStrings[Res::Rec::CustomDays] && text != recStrings[Res::Rec::CustomInterval]) {
+        ui->taskRecurrenceBox->setItemText(ui->taskRecurrenceBox->count() - 1, "Custom...");
         ui->taskRecurrenceBox->setProperty("rec", static_cast<int>(Res::recStrings.key(text)));
         if (text != "None") {
             ui->taskTypeBox->setEnabled(false);
@@ -181,7 +177,9 @@ void MainWindow::onRecurrenceBox(const QString& text)
     // handle input
     auto dialogAccept = [&]() {
         ui->taskTypeBox->setEnabled(false);
+        ui->taskRecurrenceBox->blockSignals(true);
         ui->taskTypeBox->setCurrentText(typeStrings[Type::DueTime]);
+        ui->taskRecurrenceBox->blockSignals(false);
         dialog.accept();
     };
     connect(intervalBox, &QCheckBox::clicked, &dialog, [&]() { daysBox->setChecked(false); });
@@ -229,6 +227,12 @@ void MainWindow::onRecurrenceBox(const QString& text)
             else
                 buttonText.chop(2);
 
+            if (recDays.size() == 7) {
+                ui->taskRecurrenceBox->setCurrentText(Res::recStrings[Res::Rec::Daily]);
+                ui->taskRecurrenceBox->setProperty("rec", static_cast<int>(Res::Rec::Daily));
+                dialogAccept();
+                return;
+            }
             ui->taskRecurrenceBox->setProperty("rec", static_cast<int>(Rec::CustomDays));
             ui->taskRecurrenceBox->setProperty("days", QVariant::fromValue(recDays));
         }
@@ -276,7 +280,7 @@ void MainWindow::onAddTaskButton()
     else
         rec = Rec::None;
 
-    Task task(
+    Task *task = new Task(
         ui->taskNameEdit->text(),
         currentTags,
         typeStrings.key(ui->taskTypeBox->currentText()),
@@ -287,7 +291,7 @@ void MainWindow::onAddTaskButton()
 
     QVariant varI = ui->taskRecurrenceBox->property("interval");
     if (varI.isValid())
-        task.setRecInterval(varI.toInt());
+        task->setRecInterval(varI.toInt());
 
     QVariant varD = ui->taskRecurrenceBox->property("days");
     if (varD.isValid()) {
@@ -296,18 +300,18 @@ void MainWindow::onAddTaskButton()
         for (int d : recDays)
             days.insert(static_cast<Qt::DayOfWeek>(d));
 
-        task.setRecDays(days);
+        task->setRecDays(days);
     }
 
-    auto cmp = [](const Task &a, const Task &b) {
-        auto priority = [](const Task &t) {
-            if (t.getType() == Type::Default) return 1;
-            if (t.isRecursive()) return 2;
+    auto cmp = [](const Task *a, const Task *b) {
+        auto priority = [](const Task *t) {
+            if (t->getType() == Type::Default) return 1;
+            if (t->isRecursive()) return 2;
             return 3;
         };
         int pa = priority(a), pb = priority(b);
         if (pa != pb) return pa < pb;
-        return a.getTime() < b.getTime();
+        return a->getTime() < b->getTime();
     };
 
     auto it = std::lower_bound(tasks.begin(), tasks.end(), task, cmp);
@@ -402,42 +406,42 @@ void MainWindow::updateDefaultView()
     QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidget->layout());
     layout->setAlignment(Qt::AlignTop);
 
-    QLayoutItem *child;
-    while ((child = layout->takeAt(0)) != nullptr) {
-        if (QWidget *w = child->widget()) {
+    while (QLayoutItem* child = layout->takeAt(0)) {
+        if (QWidget* w = child->widget())
             w->deleteLater();
-        }
         delete child;
     }
 
     TaskWidget::setDate(pickedDate);
     QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
-    for (Task &task : tasks)
+    int i = 0;
+    for (Task *task : tasks)
     {
         bool valid;
-        switch (task.getRec())
+        switch (task->getRec())
         {
         case Rec::None:
-            valid = (task.getTime().date() == pickedDate || task.getType() == Type::Default); break;
+            valid = (task->getTime().date() == pickedDate || task->getType() == Type::Default); break;
         case Rec::Daily:
             valid = true; break;
         case Rec::Weekly:
-            valid = (task.getTime().date().dayOfWeek() == pickedDate.dayOfWeek()); break;
+            valid = (task->getTime().date().dayOfWeek() == pickedDate.dayOfWeek()); break;
         case Rec::Monthly:
-            valid = (task.getTime().date().day() == pickedDate.day()); break;
+            valid = (task->getTime().date().day() == pickedDate.day()); break;
         case Rec::Yearly:
-            valid = (task.getTime().date().dayOfYear() == pickedDate.dayOfYear()); break;
+            valid = (task->getTime().date().dayOfYear() == pickedDate.dayOfYear()); break;
         case Rec::CustomDays:
-            valid = (task.getRecDays().contains(static_cast<Qt::DayOfWeek>(pickedDate.dayOfWeek()))); break;
+            valid = (task->getRecDays().contains(static_cast<Qt::DayOfWeek>(pickedDate.dayOfWeek()))); break;
         case Rec::CustomInterval:
-            valid = (task.getTime().date().daysTo(pickedDate) % task.getRecInterval() == 0); break;
+            valid = (task->getTime().date().daysTo(pickedDate) % task->getRecInterval() == 0); break;
         }
         if (!valid)
             continue;
 
-        TaskWidget *widget = new TaskWidget(this, &task);
+        TaskWidget *widget = new TaskWidget(this, task);
+        connect(widget, &TaskWidget::deleteTask, this, [this](Task* task){ tasks.removeOne(task); delete task; updateDefaultView(); });
 
-        switch (task.getType()) {
+        switch (task->getType()) {
         case Type::Default:
             defaultTasks.append(widget); break;
         case Type::DueTime:

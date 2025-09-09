@@ -52,7 +52,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
-    QVector<Task> tasks;
+    QVector<Task*> tasks;
     QMap<QString, bool> tags;
     enum State { default_view, new_task } state = State::default_view;
     QDate pickedDate;

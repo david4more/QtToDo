@@ -9,6 +9,7 @@ QDate TaskWidget::currentDate;
 TaskWidget::~TaskWidget()
 {
     delete ui;
+    this->update();
 }
 
 TaskWidget::TaskWidget(QWidget *parent, Task *task)
@@ -18,14 +19,53 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
 {
     ui->setupUi(this);
     connect(ui->completionBox, &QCheckBox::clicked, this, &TaskWidget::onBoxChecked);
+    connect(ui->expandButton, &QToolButton::clicked, this, &TaskWidget::onExpandClicked);
+    connect(ui->descriptionText, &QTextEdit::textChanged, this, &TaskWidget::onDescriptionChanged);
+    connect(ui->descriptionSaveButton, &QToolButton::clicked, this, &TaskWidget::onSaveButton);
+    connect(ui->deleteButton, &QToolButton::clicked, this, &TaskWidget::onDeleteButton);
+    connect(ui->descriptionCancelButton, &QToolButton::clicked, this, &TaskWidget::onCancelButton);
+
     taskCompleted = task->isCompleted(currentDate);
 
-    updateStyle();
-    ui->nameLabel->setText(task->name);
+    ui->nameLabel->setText(task->getName());
     ui->tagsLabel->setText(task->getTags().join(", "));
     ui->completionBox->setCheckState(taskCompleted ? Qt::Checked : Qt::Unchecked);
     ui->line->setStyleSheet(Res::Style::task.arg(task->getColor()));
     ui->expandButton->setIcon(QIcon(":/icons/expand"));
+    ui->expandingWidget->hide();
+    ui->deleteButton->setIcon(QIcon(":/icons/delete"));
+    ui->descriptionText->setText(task->getDescription());
+    ui->expandingWidget->setVisible(false);
+
+    QString text;
+    switch (task->getRec())
+    {
+    case Res::Rec::CustomDays:
+    {
+        auto days = task->getRecDays();
+        if (days.empty())
+            break;
+
+        QLocale loc;
+        for (int i = 1; i <= 7; ++i) {
+            if (days.contains(Qt::DayOfWeek(i)))
+                text += loc.dayName(Qt::DayOfWeek(i), QLocale::LongFormat) + ", ";
+        }
+        text.chop(2);
+    }
+        break;
+    case Res::Rec::CustomInterval:
+        text = "Every " + QString::number(task->getRecInterval()) + " days.";
+        break;
+    case Res::Rec::None:
+        ui->titleLabel->setText("Completion date");
+        break;
+    default:
+        text = Res::recStrings[task->getRec()];
+        break;
+    }
+    ui->recurrenceLabel->setText(text);
+    updateStyle();
 
     switch (task->getType())
     {
@@ -53,14 +93,58 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     }
 }
 
-void TaskWidget::setDate(QDate date)
+void TaskWidget::onDeleteButton()
 {
-    currentDate = date;
+    auto confirmation = QMessageBox::question(this, "Confirm", "Do you want to delete this task?", QMessageBox::Yes | QMessageBox::Cancel);
+    if (confirmation == QMessageBox::Yes){
+        emit deleteTask(task);
+        delete this;
+    }
+}
+
+void TaskWidget::onSaveButton()
+{
+    task->setDescription(ui->descriptionText->toPlainText());
+    ui->descriptionSaveButton->setVisible(false);
+    ui->descriptionCancelButton->setVisible(false);
+}
+
+void TaskWidget::onCancelButton()
+{
+    ui->descriptionText->setText(task->getDescription());
+    ui->descriptionSaveButton->setVisible(false);
+    ui->descriptionCancelButton->setVisible(false);
+}
+
+void TaskWidget::onExpandClicked()
+{
+    // here lays QPropertyAnimation. It has never stopped jerking. Rest in peace.
+    ui->expandingWidget->setVisible(!ui->expandingWidget->isVisible());
+
+    QPixmap pix(":/icons/expand");
+    if (ui->expandingWidget->isVisible())
+        pix = pix.transformed(QTransform().scale(1, -1));
+    ui->expandButton->setIcon(QIcon(pix));
+
+    if (ui->expandingWidget->isVisible())
+        ui->descriptionText->setText(task->getDescription());
+
+    parentWidget()->layout()->update();
+}
+
+void TaskWidget::onDescriptionChanged()
+{
+    bool visibility = ui->descriptionText->toPlainText() != task->getDescription();
+    ui->descriptionSaveButton->setVisible(visibility);
+    ui->descriptionCancelButton->setVisible(visibility);
+
+    QTextDocument* doc = ui->descriptionText->document();
+    ui->descriptionText->setFixedHeight(doc->size().height() + 5);
 }
 
 void TaskWidget::onBoxChecked(bool checked)
 {
-    task->checked(checked, currentDate);
+    task->checked(checked, QDateTime(currentDate, QTime()));
     taskCompleted = checked;
     updateStyle();
 }
@@ -70,10 +154,22 @@ void TaskWidget::updateStyle()
     ui->nameLabel->setStyleSheet(getStyle(taskCompleted));
     ui->tagsLabel->setStyleSheet(getStyle(taskCompleted));
     ui->timeLabel->setStyleSheet(getStyle(taskCompleted));
+
+    if (task->getRec() == Res::Rec::None){
+        if (taskCompleted)
+            ui->recurrenceLabel->setText(Res::getFancyDate(task->getSingleCompletion().date()) + " at " + task->getSingleCompletion().time().toString("hh':'mm"));
+        else
+            ui->recurrenceLabel->setText("Not completed");
+    }
 }
 
 QString TaskWidget::getStyle(bool checked)
 {
     QString style = Res::Style::color.arg(Res::Color::white);
     return checked ? (style + "text-decoration: line-through;") : style;
+}
+
+void TaskWidget::setDate(QDate date)
+{
+    currentDate = date;
 }

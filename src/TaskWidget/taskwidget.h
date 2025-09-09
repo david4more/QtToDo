@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QCheckBox>
 #include <QVBoxLayout>
+
 class Task;
 
 namespace Ui {
@@ -21,8 +22,16 @@ public:
 
     static void setDate(QDate date);
 
+signals:
+    void deleteTask(Task* task);
+
 private slots:
     void onBoxChecked(bool checked);
+    void onExpandClicked();
+    void onDescriptionChanged();
+    void onSaveButton();
+    void onCancelButton();
+    void onDeleteButton();
 
 private:
     QString getStyle(bool checked);
