@@ -48,14 +48,17 @@ private slots:
     void onDateClick(const QDate &date);
     void onPickTagsButton();
     void onRecurrenceBox(const QString& text);
+    void onSettingsColorButton();
 
 private:
     Ui::MainWindow *ui;
 
     QVector<Task*> tasks;
     QMap<QString, bool> tags;
-    enum State { default_view, new_task } state = State::default_view;
+    enum State { default_view, new_task, settings } state = State::default_view;
     QDate pickedDate;
+    bool showCompletedTasks = true;
+    QColor defaultColor;
 
     void setupUI();
     void saveTasks();

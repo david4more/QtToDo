@@ -2,5 +2,6 @@
     <qresource prefix="/icons">
         <file alias="expand">TaskWidget/expand.svg</file>
         <file alias="delete">TaskWidget/delete.svg</file>
+        <file alias="settings">TaskWidget/settings.svg</file>
     </qresource>
 </RCC>

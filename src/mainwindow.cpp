@@ -31,6 +31,10 @@ void MainWindow::setupUI()
     connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
     connect(ui->taskTagsButton, &QPushButton::clicked, this, &MainWindow::onPickTagsButton);
     connect(ui->taskRecurrenceBox, &QComboBox::currentTextChanged, this, &MainWindow::onRecurrenceBox);
+    connect(ui->settingsButton, &QToolButton::clicked, this, [this](){ if (state != State::settings) changeState(State::settings); else changeState(State::default_view); });
+    connect(ui->settingsDoneButton, &QPushButton::clicked, this, [this](){ if (state != State::settings) changeState(State::settings); else changeState(State::default_view); });
+    connect(ui->settingsTasksBox, &QCheckBox::clicked, this, [this](bool checked){ showCompletedTasks = checked; });
+    connect(ui->settingsColorButton, &QPushButton::clicked, this, &MainWindow::onSettingsColorButton);
 
     // calendar styling
     ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
@@ -40,7 +44,7 @@ void MainWindow::setupUI()
     ui->calendarWidget->setHeaderTextFormat(format);
     QList<Qt::DayOfWeek> weekdays = {Qt::Monday, Qt::Tuesday, Qt::Wednesday, Qt::Thursday, Qt::Friday};
     for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
-    format.setForeground(QColor(Color::def));
+    format.setForeground(defaultColor);
     weekdays = {Qt::Saturday, Qt::Sunday};
     for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
 
@@ -65,6 +69,14 @@ void MainWindow::setupUI()
     ui->taskRecurrenceBox->addItem(recStrings[Rec::Yearly]);
     ui->taskRecurrenceBox->addItem("Custom...");
     ui->taskRecurrenceBox->blockSignals(false);
+
+    ui->settingsButton->setFixedSize(QSize(24, 24));
+    ui->settingsButton->setIcon(QIcon(":/icons/settings"));
+    ui->settingsButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    ui->settingsButton->setAutoRaise(true);
+    ui->settingsButton->setStyleSheet("QToolButton { padding: 0px; margin: 0px; } QToolButton:hover { background-color: #606060 }");
+    ui->settingsColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
+    ui->settingsTasksBox->setChecked(showCompletedTasks);
 }
 
 void MainWindow::saveTasks()
@@ -89,7 +101,7 @@ void MainWindow::savePreferences()
 {
     QSaveFile prefsFile(Res::Files::prefs);
     if (!prefsFile.open(QIODevice::WriteOnly)) {
-        QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
+        QMessageBox::critical(this, "File Error", "Failed to open preferences file for writing.");
         return;
     }
 
@@ -100,11 +112,13 @@ void MainWindow::savePreferences()
 
     QJsonObject obj;
     obj["tags"] = tagsArray;
+    obj["default color"] = defaultColor.name();
+    obj["show completed tasks"] = showCompletedTasks;
     QJsonDocument doc(obj);
 
     prefsFile.write(doc.toJson());
     if (!prefsFile.commit())
-        QMessageBox::critical(this, "File Error", "Failed to save tasks.");
+        QMessageBox::critical(this, "File Error", "Failed to save preferences.");
 }
 
 void MainWindow::loadFiles()
@@ -132,6 +146,8 @@ void MainWindow::loadFiles()
         QJsonArray tagsArray = obj["tags"].toArray();
         for (const auto &tag : tagsArray)
             tags.insert(tag.toString(), false);
+        showCompletedTasks = obj.contains("show completed tasks") ? obj["show completed tasks"].toBool() : true;
+        defaultColor = (obj.contains("default color") && QColor(obj["default color"].toString()).isValid()) ? QColor(obj["default color"].toString()) : QColor(Res::Color::def);
     }
 }
 
@@ -369,7 +385,7 @@ void MainWindow::onPickColorButton()
 {
     QColorDialog dialog(this);
     dialog.setWindowTitle("Choose task's color");
-    dialog.setCurrentColor(QColor(Color::def));
+    dialog.setCurrentColor(defaultColor);
 
     dialog.setCustomColor(0, Color::def);
     dialog.setCustomColor(1, Color::red);
@@ -397,24 +413,50 @@ void MainWindow::onNewTaskButton()
         changeState(State::new_task); break;
     case State::new_task:
         changeState(State::default_view); break;
+    case State::settings:
+        changeState(State::default_view); break;
     }
+}
+
+void MainWindow::onSettingsColorButton()
+{
+    QColorDialog dialog(this);
+    dialog.setWindowTitle("Choose default color");
+    dialog.setCurrentColor(defaultColor);
+
+    dialog.setCustomColor(0, Color::def);
+    dialog.setCustomColor(1, Color::red);
+    dialog.setCustomColor(2, Color::yellow);
+    dialog.setCustomColor(3, Color::green);
+    dialog.setCustomColor(4, Color::white);
+
+
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    defaultColor = dialog.selectedColor();
+    ui->settingsColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
+
+    QTextCharFormat format;
+    format.setForeground(defaultColor);
+    for (auto day : {Qt::Saturday, Qt::Sunday}) ui->calendarWidget->setWeekdayTextFormat(day, format);
 }
 
 // Helper functions
 void MainWindow::updateDefaultView()
 {
-    QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui->scrollAreaWidget->layout());
+    QWidget *container = new QWidget;
+    QVBoxLayout *layout = new QVBoxLayout(container);
     layout->setAlignment(Qt::AlignTop);
 
     while (QLayoutItem* child = layout->takeAt(0)) {
         if (QWidget* w = child->widget())
-            w->deleteLater();
+            delete w;
         delete child;
     }
 
     TaskWidget::setDate(pickedDate);
     QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
-    int i = 0;
     for (Task *task : tasks)
     {
         bool valid;
@@ -435,6 +477,9 @@ void MainWindow::updateDefaultView()
         case Rec::CustomInterval:
             valid = (task->getTime().date().daysTo(pickedDate) % task->getRecInterval() == 0); break;
         }
+        if (valid && !showCompletedTasks && task->isCompleted(pickedDate))
+            valid = false;
+
         if (!valid)
             continue;
 
@@ -476,7 +521,9 @@ void MainWindow::updateDefaultView()
         layout->insertWidget(0, label);
     }
 
-    layout->update();
+    QWidget *old = ui->scrollArea->takeWidget();
+    old->deleteLater();
+    ui->scrollArea->setWidget(container);
 }
 
 void MainWindow::clearInputWindow()
@@ -493,7 +540,7 @@ void MainWindow::clearInputWindow()
     ui->taskTypeBox->setCurrentIndex(0);
     ui->taskDateEdit->setDate(QDate::currentDate());
     ui->taskTimeEdit->setTime(QTime::currentTime());
-    ui->taskColorButton->setStyleSheet(Style::color.arg(Color::def));
+    ui->taskColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
     ui->taskDescriptionEdit->clear();
 
     ui->taskRecurrenceBox->setCurrentIndex(0);
@@ -513,6 +560,10 @@ void MainWindow::changeState(State state)
     case State::default_view:
         updateDefaultView();
         ui->newTaskButton->setText("New Task");
+        break;
+    case State::settings:
+        ui->stackedWidget->setCurrentIndex(2);
+        ui->newTaskButton->setText("Default View");
         break;
     }
 

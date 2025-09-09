@@ -90,11 +90,7 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
         break;
     }
 
-    QTimer::singleShot(50, this, [this]() {
-        ui->expandingWidget->setVisible(true);
-        ui->descriptionText->setFixedHeight(ui->descriptionText->document()->size().height() + 5);
-        ui->expandingWidget->setVisible(false);
-    });
+    ui->expandingWidget->setVisible(false);
 }
 
 void TaskWidget::onDeleteButton()
