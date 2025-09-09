@@ -71,7 +71,7 @@ namespace Res
         "Questless stars above;\nchill night guards thy fleeting soul—\nTomorrow may burn."
     };
 
-    enum class Mode { Default, Light }; inline constexpr Mode mode = Mode::Default;
+    inline bool lightMode = false;
 };
 
 #endif // RESOURSES_H

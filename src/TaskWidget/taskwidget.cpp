@@ -68,25 +68,25 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     switch (task->getType())
     {
     case Res::Type::DueTime:
-        ui->timeLabel->setText("Begin at " + task->getTime().time().toString("hh:mm"));
+        ui->timeLabel->setText("Begin at " + task->getDateTime().time().toString("hh:mm"));
         break;
     case Res::Type::Deadline:
-        ui->timeLabel->setText("Finish by " + task->getTime().time().toString("hh:mm"));
+        ui->timeLabel->setText("Finish by " + task->getDateTime().time().toString("hh:mm"));
         break;
     case Res::Type::Default:
-        if (Res::mode == Res::Mode::Light) {
-            ui->timeLabel->setText("Created at: " + task->getTime().time().toString("hh:mm"));
+        if (Res::lightMode) {
+            ui->timeLabel->setText("Created at: " + task->getDateTime().time().toString("hh:mm"));
             return;
         }
 
-        if (currentDate == task->getTime().date())
-            ui->timeLabel->setText(task->getTime().time().toString("hh:mm"));
-        else if (currentDate.month() == task->getTime().date().month() && currentDate.year() == task->getTime().date().year())
-            ui->timeLabel->setText(task->getTime().date().toString("d") + Res::getSuffix(task->getTime().date().day()) + " at " + task->getTime().time().toString("hh:mm"));
-        else if (currentDate.year() == task->getTime().date().year())
-            ui->timeLabel->setText(task->getTime().date().toString("MMMM d") + Res::getSuffix(task->getTime().date().day()) + " at " + task->getTime().time().toString("hh:mm"));
+        if (currentDate == task->getDateTime().date())
+            ui->timeLabel->setText(task->getDateTime().time().toString("hh:mm"));
+        else if (currentDate.month() == task->getDateTime().date().month() && currentDate.year() == task->getDateTime().date().year())
+            ui->timeLabel->setText(task->getDateTime().date().toString("d") + Res::getSuffix(task->getDateTime().date().day()) + " at " + task->getDateTime().time().toString("hh:mm"));
+        else if (currentDate.year() == task->getDateTime().date().year())
+            ui->timeLabel->setText(task->getDateTime().date().toString("MMMM d") + Res::getSuffix(task->getDateTime().date().day()) + " at " + task->getDateTime().time().toString("hh:mm"));
         else
-            ui->timeLabel->setText(task->getTime().date().toString("dd.MM.yyyy") + " at " + task->getTime().time().toString("hh:mm"));
+            ui->timeLabel->setText(task->getDateTime().date().toString("dd.MM.yyyy") + " at " + task->getDateTime().time().toString("hh:mm"));
         break;
     }
 

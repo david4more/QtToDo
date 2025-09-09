@@ -57,7 +57,8 @@ private:
     QMap<QString, bool> tags;
     enum State { default_view, new_task, settings } state = State::default_view;
     QDate pickedDate;
-    bool showCompletedTasks = true;
+    // TODO: bool lightMode;
+    bool showCompletedTasks;
     QColor defaultColor;
 
     void setupUI();
@@ -66,6 +67,7 @@ private:
     void loadFiles();
 
     void addTag(const QString &tag);
+    void updateLeftPanel();
     void updateDefaultView();
     void clearInputWindow();
     void changeState(State state);

@@ -122,7 +122,7 @@ public:
     };
     bool isRecursive() const { return (recurrence != Res::Rec::None); }
 
-    QDateTime getTime() const { return time; }
+    QDateTime getDateTime() const { return time; }
     QVector<QString> getTags() const { return tags; }
     Res::Type getType() const { return type; }
     Res::Rec getRec() const { return recurrence; }

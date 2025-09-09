@@ -52,8 +52,6 @@ void MainWindow::setupUI()
     ui->todayGroup->setTitle(Res::getFancyDate(pickedDate) + ": tasks");
 
     // everything else
-    ui->tasksListWidget->addItem(noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
-
     ui->todayGroup->setStyleSheet(Style::color.arg(Color::white));
     ui->newTaskButton->setStyleSheet(Style::color.arg(Color::white));
 
@@ -287,7 +285,7 @@ void MainWindow::onAddTaskButton()
     if (varC.isValid())
         color = QColor(varC.toString());
     else
-        color = Color::def;
+        color = defaultColor;
 
     Rec rec;
     QVariant varR = ui->taskRecurrenceBox->property("rec");
@@ -327,7 +325,7 @@ void MainWindow::onAddTaskButton()
         };
         int pa = priority(a), pb = priority(b);
         if (pa != pb) return pa < pb;
-        return a->getTime() < b->getTime();
+        return a->getDateTime() < b->getDateTime();
     };
 
     auto it = std::lower_bound(tasks.begin(), tasks.end(), task, cmp);
@@ -352,11 +350,13 @@ void MainWindow::onPickTagsButton()
     QHBoxLayout *hLayout = new QHBoxLayout;
     QLineEdit *line = new QLineEdit(&dialog);
     QPushButton *button = new QPushButton("Add...", &dialog);
+    QPushButton *deleteButton = new QPushButton("Delete checked tags", &dialog);
     QPushButton *doneButton = new QPushButton("Done", &dialog);
 
     hLayout->addWidget(line);
     hLayout->addWidget(button);
     layout->addLayout(hLayout);
+    layout->addWidget(deleteButton);
     layout->addWidget(doneButton);
 
     connect(button, &QPushButton::clicked, [layout, &dialog, line, this] {
@@ -368,8 +368,18 @@ void MainWindow::onPickTagsButton()
         tags.insert(tag, true);
         QCheckBox *checkBox = new QCheckBox(tag, &dialog);
         checkBox->setCheckState(Qt::Checked);
-        layout->insertWidget(layout->count() - 2, checkBox);
+        layout->insertWidget(layout->count() - 3, checkBox);
         line->clear();
+    });
+
+    connect(deleteButton, &QPushButton::clicked, [&dialog, this] {
+        for (QCheckBox *cb : dialog.findChildren<QCheckBox*>()){
+            if (cb->isChecked()){
+                tags.remove(cb->text());
+                delete cb;
+                dialog.adjustSize();
+            }
+        }
     });
 
     connect(doneButton, &QPushButton::clicked, [&dialog, this] {
@@ -443,6 +453,25 @@ void MainWindow::onSettingsColorButton()
 }
 
 // Helper functions
+void MainWindow::updateLeftPanel()
+{
+    ui->tasksListWidget->clear();
+    ui->deadlinesListWidget->clear();
+    for (const auto task : tasks) {
+        if (task->getDateTime().date() == QDate::currentDate()) {
+            if (task->getType() == Type::DueTime)
+                ui->tasksListWidget->addItem(task->getName());
+            else if (task->getType() == Type::Deadline)
+                ui->deadlinesListWidget->addItem(task->getName());
+        }
+    }
+    if (ui->tasksListWidget->count() == 0)
+        ui->tasksListWidget->addItem(noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
+
+    if (ui->deadlinesListWidget->count() == 0)
+        ui->deadlinesListWidget->addItem(noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
+}
+
 void MainWindow::updateDefaultView()
 {
     QWidget *container = new QWidget;
@@ -463,19 +492,19 @@ void MainWindow::updateDefaultView()
         switch (task->getRec())
         {
         case Rec::None:
-            valid = (task->getTime().date() == pickedDate || task->getType() == Type::Default); break;
+            valid = (task->getDateTime().date() == pickedDate || task->getType() == Type::Default); break;
         case Rec::Daily:
             valid = true; break;
         case Rec::Weekly:
-            valid = (task->getTime().date().dayOfWeek() == pickedDate.dayOfWeek()); break;
+            valid = (task->getDateTime().date().dayOfWeek() == pickedDate.dayOfWeek()); break;
         case Rec::Monthly:
-            valid = (task->getTime().date().day() == pickedDate.day()); break;
+            valid = (task->getDateTime().date().day() == pickedDate.day()); break;
         case Rec::Yearly:
-            valid = (task->getTime().date().dayOfYear() == pickedDate.dayOfYear()); break;
+            valid = (task->getDateTime().date().dayOfYear() == pickedDate.dayOfYear()); break;
         case Rec::CustomDays:
             valid = (task->getRecDays().contains(static_cast<Qt::DayOfWeek>(pickedDate.dayOfWeek()))); break;
         case Rec::CustomInterval:
-            valid = (task->getTime().date().daysTo(pickedDate) % task->getRecInterval() == 0); break;
+            valid = (task->getDateTime().date().daysTo(pickedDate) % task->getRecInterval() == 0); break;
         }
         if (valid && !showCompletedTasks && task->isCompleted(pickedDate))
             valid = false;
