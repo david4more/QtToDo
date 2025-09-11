@@ -37,6 +37,7 @@ namespace Res
         inline const QString pomoWork = "pomo work";
         inline const QString pomoBreak = "pomo break";
         inline const QString pomoRestCycle = "pomo rest cycle";
+        inline const QString alarmVolume = "alarm volume";
     }
 
     enum class Type { Default = 0, DueTime = 1, Deadline = 2 };

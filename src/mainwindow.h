@@ -21,6 +21,8 @@
 #include <QTimer>
 #include <QPointer>
 #include <QFileInfo>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 
 class Task;
 class TaskWidget;
@@ -84,6 +86,9 @@ private:
         int currentTime;
         int cycle;
         int bigRestCycle;
+        double alarmVolume;
+        QMediaPlayer audioPlayer;
+        QAudioOutput audioOutput;
     } pomo;
     QTimer timer;
 

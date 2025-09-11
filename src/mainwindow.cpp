@@ -73,6 +73,12 @@ void MainWindow::setupUI()
     connect(ui->settingsProfessionalBox, &QCheckBox::clicked, this, [this](bool checked){ Res::professionalMode = checked; } );
     connect(ui->settingsDoneButton, &QPushButton::clicked, this, [this](){ changeState((state == State::settings) ? State::default_view : State::settings); });
     connect(ui->settingsButton, &QToolButton::clicked, this, [this](){ changeState((state == State::settings) ? State::default_view : State::settings); });
+    connect(ui->timerVolumeSlider, &QSlider::valueChanged, this, [this](int value){
+        pomo.alarmVolume = value / 100.f;
+        if (pomo.audioPlayer.playbackState() != QMediaPlayer::PlayingState)
+            pomo.audioPlayer.play();
+        pomo.audioOutput.setVolume(pomo.alarmVolume);
+    });
 
     ui->settingsTasksBox->setChecked(showCompletedTasks);
     ui->settingsLightBox->setChecked(Res::lightMode);
@@ -89,6 +95,7 @@ void MainWindow::setupUI()
     ui->settingsWorkBox->setValue(pomo.work);
     ui->settingsBreakBox->setValue(pomo.rest);
     ui->settingsRestBox->setValue(pomo.bigRestCycle);
+    ui->timerVolumeSlider->setValue(static_cast<int>(pomo.alarmVolume * 100));
 
     // pomodoro timer
     connect(ui->startTimerButton, &QPushButton::clicked, this, &MainWindow::onStartTimerButton);
@@ -102,6 +109,10 @@ void MainWindow::setupUI()
     ui->pomoButton->setStyleSheet("QToolButton { padding: 0px; margin: 0px; } QToolButton:hover { background-color: #606060 }");
 
     resetTimer();
+
+    pomo.audioPlayer.setAudioOutput(&pomo.audioOutput);
+    pomo.audioPlayer.setSource(QUrl("qrc:/sound/alarm"));
+    pomo.audioOutput.setVolume(pomo.alarmVolume);
 }
 
 void MainWindow::saveTasks()
@@ -144,6 +155,7 @@ void MainWindow::savePreferences()
     obj[File::pomoWork] = pomo.work;
     obj[File::pomoBreak] = pomo.rest;
     obj[File::pomoRestCycle] = pomo.bigRestCycle;
+    obj[File::alarmVolume] = std::floor(pomo.alarmVolume * 100.0) / 100.0;
     QJsonDocument doc(obj);
 
     prefsFile.write(doc.toJson());
@@ -184,6 +196,7 @@ void MainWindow::loadFiles()
         pomo.work = (obj.contains(File::pomoWork) ? obj[File::pomoWork].toInt() : 25);
         pomo.rest = (obj.contains(File::pomoBreak) ? obj[File::pomoBreak].toInt() : 5);
         pomo.bigRestCycle = (obj.contains(File::pomoRestCycle) ? obj[File::pomoRestCycle].toInt() : 4);
+        pomo.alarmVolume = (obj.contains(File::alarmVolume) ? obj[File::alarmVolume].toDouble() : 0.5f);
     }
 }
 
@@ -236,6 +249,8 @@ void MainWindow::onTimerTimeout()
     if (pomo.currentTime != 0)
         return;
 
+    pomo.audioPlayer.play();
+
     bool longBreakAccepted = false;
     if (pomo.isWork) {
         if (pomo.cycle >= pomo.bigRestCycle) {
@@ -250,6 +265,8 @@ void MainWindow::onTimerTimeout()
             QMessageBox::information(this, Text::workEnd, professionalMode ? "Time for a break" : Text::randomText(Text::pomoWorkDone));
     } else
         QMessageBox::information(this, Text::breakEnd, professionalMode ? "Time to work" : Text::randomText(Text::pomoBreakDone));
+
+    pomo.audioPlayer.stop();
 
     ui->timerCycleLabel->setText(pomo.resetTime(longBreakAccepted));
     ui->timerTimeButton->setText(pomo.getTime());
@@ -694,6 +711,7 @@ void MainWindow::changeState(State state)
             pomo.bigRestCycle = ui->settingsRestBox->value();
             resetTimer();
         }
+        pomo.audioPlayer.stop();
     }
 
     this->state = state;

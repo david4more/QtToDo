@@ -5,4 +5,7 @@
         <file alias="settings">TaskWidget/settings.svg</file>
         <file alias="hourglass">TaskWidget/hourglass.svg</file>
     </qresource>
+    <qresource prefix="/sound">
+        <file alias="alarm">TaskWidget/alarm.mp3</file>
+    </qresource>
 </RCC>

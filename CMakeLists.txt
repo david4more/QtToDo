@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ToDoList VERSION 0.1 LANGUAGES CXX)
+project(Thinker VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -9,8 +9,7 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia)
 
 set(PROJECT_SOURCES
     src/main.cpp
@@ -24,14 +23,14 @@ set(PROJECT_SOURCES
     src/Resourses.h
 )
 
-add_executable(ToDoList
+add_executable(Thinker
     ${PROJECT_SOURCES}
-    src/icons.qrc
+    src/files.qrc
 )
 
-target_link_libraries(ToDoList PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(Thinker PRIVATE Qt6::Widgets Qt6::Multimedia)
 
-install(TARGETS ToDoList
+install(TARGETS Thinker
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
