@@ -101,9 +101,11 @@ namespace Res
         };
 
         inline const QStringList pomoFirstCycle = {
-            // "Discover the wonder, thrive for your soul's fuel"
-            "First adventure",
-            "Flight's beginning"
+            "First Adventure",
+            "Sunrise",
+            "Star Rises",
+            "First Spark",
+            "First Sunbeam"
         };
 
         inline const QStringList pomoLongBreak = {

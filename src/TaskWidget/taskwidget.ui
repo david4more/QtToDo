@@ -70,6 +70,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="focusPolicy">
+         <enum>Qt::FocusPolicy::NoFocus</enum>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -125,6 +128,9 @@
           </item>
           <item>
            <widget class="QToolButton" name="expandButton">
+            <property name="focusPolicy">
+             <enum>Qt::FocusPolicy::NoFocus</enum>
+            </property>
             <property name="text">
              <string/>
             </property>
@@ -201,6 +207,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="focusPolicy">
+             <enum>Qt::FocusPolicy::NoFocus</enum>
+            </property>
             <property name="text">
              <string>Save</string>
             </property>
@@ -213,6 +222,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="text">
              <string>Cancel</string>
@@ -237,6 +249,9 @@
           <height>100</height>
          </size>
         </property>
+        <property name="focusPolicy">
+         <enum>Qt::FocusPolicy::NoFocus</enum>
+        </property>
        </widget>
       </item>
       <item row="1" column="0">
@@ -257,6 +272,9 @@
         </item>
         <item>
          <widget class="QToolButton" name="deleteButton">
+          <property name="focusPolicy">
+           <enum>Qt::FocusPolicy::NoFocus</enum>
+          </property>
           <property name="text">
            <string/>
           </property>

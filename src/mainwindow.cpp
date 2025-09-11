@@ -8,6 +8,7 @@ using namespace Res;
 // Construction/desctruction, files handling
 MainWindow::~MainWindow()
 {
+    pomo.audioPlayer.stop();
     saveTasks();
     savePreferences();
     delete ui;

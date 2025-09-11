@@ -721,7 +721,7 @@ QCalendarWidget QHeaderView {
              <item row="2" column="0" colspan="3">
               <widget class="QLabel" name="label_11">
                <property name="text">
-                <string>Rest dur. = break dur. * Rest cycle</string>
+                <string>(Rest dur. = break dur. * Rest cycle)</string>
                </property>
               </widget>
              </item>
