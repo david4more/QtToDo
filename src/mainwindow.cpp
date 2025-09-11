@@ -16,6 +16,7 @@ MainWindow::~MainWindow()
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    pickedDate = QDate::currentDate();
     loadFiles();
     setupUI();
     changeState(State::default_view);
@@ -23,22 +24,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 void MainWindow::setupUI()
 {
-    pickedDate = QDate::currentDate();
-
-    connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
-    connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
+    // left panel
     connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
-    connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
-    connect(ui->taskTagsButton, &QPushButton::clicked, this, &MainWindow::onPickTagsButton);
-    connect(ui->taskRecurrenceBox, &QComboBox::currentTextChanged, this, &MainWindow::onRecurrenceBox);
-    connect(ui->settingsButton, &QToolButton::clicked, this, [this](){ if (state != State::settings) changeState(State::settings); else changeState(State::default_view); });
-    connect(ui->settingsDoneButton, &QPushButton::clicked, this, [this](){ if (state != State::settings) changeState(State::settings); else changeState(State::default_view); });
-    connect(ui->settingsTasksBox, &QCheckBox::clicked, this, [this](bool checked){ showCompletedTasks = checked; });
-    connect(ui->settingsColorButton, &QPushButton::clicked, this, &MainWindow::onSettingsColorButton);
-    connect(ui->settingsLightBox, &QCheckBox::clicked, this, [this](bool checked){ Res::lightMode = checked; } );
-    connect(ui->settingsProfessionalBox, &QCheckBox::clicked, this, [this](bool checked){ Res::professionalMode = checked; } );
+    connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
+    connect(ui->pomoButton, &QPushButton::clicked, this, [this](){ if (state != State::pomodoro) changeState(State::pomodoro); else changeState(State::default_view); });
 
-    // calendar styling
     ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
     ui->calendarWidget->findChild<QToolButton*>("qt_calendar_nextmonth")->hide();
     QTextCharFormat format;
@@ -47,15 +37,20 @@ void MainWindow::setupUI()
     QList<Qt::DayOfWeek> weekdays = {Qt::Monday, Qt::Tuesday, Qt::Wednesday, Qt::Thursday, Qt::Friday};
     for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
     format.setForeground(defaultColor);
-    weekdays = {Qt::Saturday, Qt::Sunday};
-    for (auto day : weekdays) ui->calendarWidget->setWeekdayTextFormat(day, format);
 
-    // date suffix
+    updateCalendar();
+
     ui->todayGroup->setTitle(Res::getFancyDate(pickedDate) + ": tasks");
 
-    // everything else
     ui->todayGroup->setStyleSheet(Style::color.arg(Color::white));
     ui->newTaskButton->setStyleSheet(Style::color.arg(Color::white));
+
+
+    // new task
+    connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::onAddTaskButton);
+    connect(ui->taskColorButton, &QPushButton::clicked, this, &MainWindow::onPickColorButton);
+    connect(ui->taskTagsButton, &QPushButton::clicked, this, &MainWindow::onPickTagsButton);
+    connect(ui->taskRecurrenceBox, &QComboBox::currentTextChanged, this, &MainWindow::onRecurrenceBox);
 
     ui->taskTypeBox->addItem(typeStrings[Type::Default]);
     ui->taskTypeBox->addItem(typeStrings[Type::DueTime]);
@@ -70,15 +65,43 @@ void MainWindow::setupUI()
     ui->taskRecurrenceBox->addItem("Custom...");
     ui->taskRecurrenceBox->blockSignals(false);
 
+
+    // settings
+    connect(ui->settingsColorButton, &QPushButton::clicked, this, &MainWindow::onSettingsColorButton);
+    connect(ui->settingsTasksBox, &QCheckBox::clicked, this, [this](bool checked){ showCompletedTasks = checked; });
+    connect(ui->settingsLightBox, &QCheckBox::clicked, this, [this](bool checked){ Res::lightMode = checked; } );
+    connect(ui->settingsProfessionalBox, &QCheckBox::clicked, this, [this](bool checked){ Res::professionalMode = checked; } );
+    connect(ui->settingsDoneButton, &QPushButton::clicked, this, [this](){ changeState((state == State::settings) ? State::default_view : State::settings); });
+    connect(ui->settingsButton, &QToolButton::clicked, this, [this](){ changeState((state == State::settings) ? State::default_view : State::settings); });
+
+    ui->settingsTasksBox->setChecked(showCompletedTasks);
+    ui->settingsLightBox->setChecked(Res::lightMode);
+    ui->settingsProfessionalBox->setChecked(Res::professionalMode);
+
+    ui->settingsColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
+
     ui->settingsButton->setFixedSize(QSize(24, 24));
     ui->settingsButton->setIcon(QIcon(":/icons/settings"));
     ui->settingsButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
     ui->settingsButton->setAutoRaise(true);
     ui->settingsButton->setStyleSheet("QToolButton { padding: 0px; margin: 0px; } QToolButton:hover { background-color: #606060 }");
-    ui->settingsColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
-    ui->settingsTasksBox->setChecked(showCompletedTasks);
-    ui->settingsLightBox->setChecked(Res::lightMode);
-    ui->settingsProfessionalBox->setChecked(Res::professionalMode);
+
+    ui->settingsWorkBox->setValue(pomo.work);
+    ui->settingsBreakBox->setValue(pomo.rest);
+    ui->settingsRestBox->setValue(pomo.bigRestCycle);
+
+    // pomodoro timer
+    connect(ui->startTimerButton, &QPushButton::clicked, this, &MainWindow::onStartTimerButton);
+    connect(&timer, &QTimer::timeout, this, &MainWindow::onTimerTimeout);
+    connect(ui->timerTimeButton, &QPushButton::clicked, this, &MainWindow::onTimerTimeButton);
+
+    ui->pomoButton->setFixedSize(QSize(24, 24));
+    ui->pomoButton->setIcon(QIcon(":/icons/hourglass"));
+    ui->pomoButton->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    ui->pomoButton->setAutoRaise(true);
+    ui->pomoButton->setStyleSheet("QToolButton { padding: 0px; margin: 0px; } QToolButton:hover { background-color: #606060 }");
+
+    resetTimer();
 }
 
 void MainWindow::saveTasks()
@@ -87,7 +110,7 @@ void MainWindow::saveTasks()
     for (const Task *t : tasks)
         tasksArray.append(t->toJson());
 
-    QSaveFile file(Res::Files::tasks);
+    QSaveFile file(File::tasks);
     if (!file.open(QIODevice::WriteOnly)) {
         QMessageBox::critical(this, "File Error", "Failed to open tasks file for writing.");
         return;
@@ -101,7 +124,7 @@ void MainWindow::saveTasks()
 
 void MainWindow::savePreferences()
 {
-    QSaveFile prefsFile(Res::Files::prefs);
+    QSaveFile prefsFile(File::prefs);
     if (!prefsFile.open(QIODevice::WriteOnly)) {
         QMessageBox::critical(this, "File Error", "Failed to open preferences file for writing.");
         return;
@@ -113,11 +136,14 @@ void MainWindow::savePreferences()
         tagsArray.append(tag);
 
     QJsonObject obj;
-    obj["tags"] = tagsArray;
-    obj["default color"] = defaultColor.name();
-    obj["show completed tasks"] = showCompletedTasks;
-    obj["professional mode"] = professionalMode;
-    obj["light mode"] = lightMode;
+    obj[File::tags] = tagsArray;
+    obj[File::completedTasks] = showCompletedTasks;
+    obj[File::professionalMode] = professionalMode;
+    obj[File::lightMode] = lightMode;
+    obj[File::defaultColor] = defaultColor.name();
+    obj[File::pomoWork] = pomo.work;
+    obj[File::pomoBreak] = pomo.rest;
+    obj[File::pomoRestCycle] = pomo.bigRestCycle;
     QJsonDocument doc(obj);
 
     prefsFile.write(doc.toJson());
@@ -128,7 +154,7 @@ void MainWindow::savePreferences()
 void MainWindow::loadFiles()
 {
     // reading tasks
-    QFile tasksFile(Res::Files::tasks);
+    QFile tasksFile(File::tasks);
     if (tasksFile.open(QIODevice::ReadOnly))
     {
         QJsonDocument doc = QJsonDocument::fromJson(tasksFile.readAll());
@@ -140,25 +166,95 @@ void MainWindow::loadFiles()
     }
 
     // reading preferences
-    QFile prefsFile(Res::Files::prefs);
+    QFile prefsFile(File::prefs);
     if (prefsFile.open(QIODevice::ReadOnly))
     {
         QJsonDocument doc = QJsonDocument::fromJson(prefsFile.readAll());
         prefsFile.close();
 
         QJsonObject obj = doc.object();
-        QJsonArray tagsArray = obj["tags"].toArray();
+        QJsonArray tagsArray = obj[File::tags].toArray();
         for (const auto &tag : tagsArray)
             tags.insert(tag.toString(), false);
 
-        showCompletedTasks = obj.contains("show completed tasks") ? obj["show completed tasks"].toBool() : true;
-        professionalMode = obj.contains("professional mode") ? obj["professional mode"].toBool() : false;
-        lightMode = obj.contains("light mode") ? obj["light mode"].toBool() : false;
-        defaultColor = (obj.contains("default color") && QColor(obj["default color"].toString()).isValid()) ? QColor(obj["default color"].toString()) : QColor(Res::Color::def);
+        showCompletedTasks = obj.contains(File::completedTasks) ? obj[File::completedTasks].toBool() : true;
+        professionalMode = obj.contains(File::professionalMode) ? obj[File::professionalMode].toBool() : false;
+        lightMode = obj.contains(File::lightMode) ? obj[File::lightMode].toBool() : false;
+        defaultColor = (obj.contains(File::defaultColor) && QColor(obj[File::defaultColor].toString()).isValid()) ? QColor(obj[File::defaultColor].toString()) : QColor(Res::Color::def);
+        pomo.work = (obj.contains(File::pomoWork) ? obj[File::pomoWork].toInt() : 25);
+        pomo.rest = (obj.contains(File::pomoBreak) ? obj[File::pomoBreak].toInt() : 5);
+        pomo.bigRestCycle = (obj.contains(File::pomoRestCycle) ? obj[File::pomoRestCycle].toInt() : 4);
     }
 }
 
 // Slots
+void MainWindow::onTimerTimeButton()
+{
+    QDialog dialog(this);
+    dialog.setWindowTitle("Set timer's current time");
+
+    int initMins = static_cast<int>(pomo.currentTime / 60), initSecs = pomo.currentTime % 60;
+    QHBoxLayout *layout = new QHBoxLayout(&dialog);
+    QSpinBox *minsBox = new QSpinBox(&dialog);
+    QSpinBox *secsBox = new QSpinBox(&dialog);
+
+    minsBox->setRange(0, 59);
+    minsBox->setValue(initMins);
+    secsBox->setRange(1, 59);
+    secsBox->setValue(initSecs);
+    layout->addWidget(minsBox);
+    layout->addWidget(secsBox);
+
+    QPushButton *doneButton = new QPushButton("Done", &dialog);
+    layout->addWidget(doneButton);
+    connect(doneButton, &QPushButton::clicked, &dialog, [&](){
+        if (minsBox->value() != initMins || secsBox->value() != initSecs){
+            pomo.currentTime = (minsBox->value() * 60) + secsBox->value();
+            ui->timerTimeButton->setText(pomo.getTime());
+        }
+        dialog.close(); });
+
+    dialog.exec();
+}
+
+void MainWindow::onStartTimerButton()
+{
+    if (!pomo.timerRunning)
+        timer.start(1000);
+    else
+        timer.stop();
+
+    pomo.timerRunning = !pomo.timerRunning;
+    ui->startTimerButton->setText(pomo.timerRunning ? "Stop" : "Start");
+}
+
+void MainWindow::onTimerTimeout()
+{
+    --pomo.currentTime;
+    ui->timerTimeButton->setText(pomo.getTime());
+
+    if (pomo.currentTime != 0)
+        return;
+
+    bool longBreakAccepted = false;
+    if (pomo.isWork) {
+        if (pomo.cycle >= pomo.bigRestCycle) {
+            QMessageBox messageBox;
+            messageBox.setWindowTitle(Text::workEnd);
+            messageBox.setText(professionalMode ? "Make a long break?" : Text::randomText(Text::pomoLongBreak));
+            QPushButton *yesButton = messageBox.addButton("Yes", QMessageBox::AcceptRole);
+            QPushButton *noButton  = messageBox.addButton("Skip", QMessageBox::RejectRole);
+            messageBox.exec();
+            longBreakAccepted = (messageBox.clickedButton() == yesButton);
+        } else
+            QMessageBox::information(this, Text::workEnd, professionalMode ? "Time for a break" : Text::randomText(Text::pomoWorkDone));
+    } else
+        QMessageBox::information(this, Text::breakEnd, professionalMode ? "Time to work" : Text::randomText(Text::pomoBreakDone));
+
+    ui->timerCycleLabel->setText(pomo.resetTime(longBreakAccepted));
+    ui->timerTimeButton->setText(pomo.getTime());
+}
+
 void MainWindow::onRecurrenceBox(const QString& text)
 {
     // Simple cases handling
@@ -340,7 +436,7 @@ void MainWindow::onAddTaskButton()
     auto it = std::lower_bound(tasks.begin(), tasks.end(), task, cmp);
     tasks.insert(it, task);
 
-    // if (Res::mode == Res::Mode::Default) saveTasks();
+    if (!lightMode) saveTasks();
     changeState(State::default_view);
 }
 
@@ -430,9 +526,7 @@ void MainWindow::onNewTaskButton()
     switch (state) {
     case State::default_view:
         changeState(State::new_task); break;
-    case State::new_task:
-        changeState(State::default_view); break;
-    case State::settings:
+    default:
         changeState(State::default_view); break;
     }
 }
@@ -456,9 +550,7 @@ void MainWindow::onSettingsColorButton()
     defaultColor = dialog.selectedColor();
     ui->settingsColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
 
-    QTextCharFormat format;
-    format.setForeground(defaultColor);
-    for (auto day : {Qt::Saturday, Qt::Sunday}) ui->calendarWidget->setWeekdayTextFormat(day, format);
+    updateCalendar();
 }
 
 // Helper functions
@@ -477,10 +569,10 @@ void MainWindow::updateLeftPanel()
         }
     }
     if (ui->tasksListWidget->count() == 0)
-        ui->tasksListWidget->addItem(professionalMode ? "No tasks today" : noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
+        ui->tasksListWidget->addItem(professionalMode ? "No tasks today" : Text::randomText(Text::noTasksPlaceholders));
 
     if (ui->deadlinesListWidget->count() == 0)
-        ui->deadlinesListWidget->addItem(professionalMode ? "No deadlines within three months" : noTasksPlaceholders.at(QRandomGenerator::global()->bounded(noTasksPlaceholders.size())));
+        ui->deadlinesListWidget->addItem(professionalMode ? "No deadlines within three months" : Text::randomText(Text::noTasksPlaceholders));
 }
 
 void MainWindow::updateDefaultView()
@@ -564,8 +656,8 @@ void MainWindow::updateDefaultView()
     }
 
     QWidget *old = ui->scrollArea->takeWidget();
-    old->deleteLater();
     ui->scrollArea->setWidget(container);
+    old->deleteLater();
 }
 
 void MainWindow::clearInputWindow()
@@ -591,6 +683,19 @@ void MainWindow::clearInputWindow()
 
 void MainWindow::changeState(State state)
 {
+    if (this->state == State::settings){
+        if (
+            pomo.work != ui->settingsWorkBox->value() ||
+            pomo.rest != ui->settingsBreakBox->value() ||
+            pomo.bigRestCycle != ui->settingsRestBox->value())
+        {
+            pomo.work = ui->settingsWorkBox->value();
+            pomo.rest = ui->settingsBreakBox->value();
+            pomo.bigRestCycle = ui->settingsRestBox->value();
+            resetTimer();
+        }
+    }
+
     this->state = state;
 
     switch (state)
@@ -604,7 +709,9 @@ void MainWindow::changeState(State state)
         ui->newTaskButton->setText("New Task");
         break;
     case State::settings:
-        ui->stackedWidget->setCurrentIndex(2);
+        ui->newTaskButton->setText("Default View");
+        break;
+    case State::pomodoro:
         ui->newTaskButton->setText("Default View");
         break;
     }
@@ -629,6 +736,21 @@ void MainWindow::errorStyleTimer(QWidget* widget)
     timer->start(2000);
 }
 
+void MainWindow::resetTimer()
+{
+    timer.stop();
+    pomo.init();
+    ui->startTimerButton->setText("Start");
+    ui->timerTimeButton->setText(pomo.getTime());
+    ui->timerCycleLabel->setText(professionalMode ? "First cycle: work" : Text::randomText(Text::pomoFirstCycle));
+}
+
+void MainWindow::updateCalendar()
+{
+    QTextCharFormat format;
+    format.setForeground(defaultColor);
+    for (auto day : {Qt::Saturday, Qt::Sunday}) ui->calendarWidget->setWeekdayTextFormat(day, format);
+}
 
 
 

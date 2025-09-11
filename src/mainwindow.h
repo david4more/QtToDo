@@ -49,16 +49,43 @@ private slots:
     void onPickTagsButton();
     void onRecurrenceBox(const QString& text);
     void onSettingsColorButton();
+    void onStartTimerButton();
+    void onTimerTimeout();
+    void onTimerTimeButton();
 
 private:
     Ui::MainWindow *ui;
 
     QVector<Task*> tasks;
     QMap<QString, bool> tags;
-    enum State { default_view, new_task, settings } state = State::default_view;
+    enum State { default_view, new_task, settings, pomodoro } state = State::default_view;
     QDate pickedDate;
     bool showCompletedTasks;
-    QColor defaultColor;
+    struct {
+        QString getTime() { return QString("%1:%2").arg(static_cast<int>(currentTime / 60), 2, 10, QChar('0')).arg(static_cast<int>(currentTime % 60), 2, 10, QChar('0')); };
+        QString resetTime(bool longBreakAccepted) {
+            isWork = !isWork;
+
+            if (!longBreakAccepted)
+                currentTime = 60 * (isWork ? work : rest);
+            else {
+                currentTime = 60 * rest * cycle;
+                cycle = 0;
+            }
+            if (isWork) ++cycle;
+
+            return ((isWork ? "Work" : (longBreakAccepted ? "Long break" : "Break")) + QString(": cycle ") + QString::number(cycle));
+        };
+        void init() { currentTime = 60 * work; isWork = true; timerRunning = false; cycle = 1; }
+        bool timerRunning;
+        bool isWork;
+        int work;
+        int rest;
+        int currentTime;
+        int cycle;
+        int bigRestCycle;
+    } pomo;
+    QTimer timer;
 
     void setupUI();
     void saveTasks();
@@ -67,6 +94,8 @@ private:
 
     void addTag(const QString &tag);
     void updateLeftPanel();
+    void updateCalendar();
+    void resetTimer();
     void updateDefaultView();
     void clearInputWindow();
     void changeState(State state);

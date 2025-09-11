@@ -22,7 +22,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QWidget" name="widget_1" native="true">
+     <widget class="QWidget" name="leftPanel" native="true">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>1</horstretch>
@@ -73,6 +73,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="focusPolicy">
+             <enum>Qt::FocusPolicy::NoFocus</enum>
             </property>
             <property name="styleSheet">
              <string notr="true">QCalendarWidget QToolButton {
@@ -143,7 +146,17 @@ QCalendarWidget QHeaderView {
            <number>0</number>
           </property>
           <item>
-           <widget class="QListWidget" name="tasksListWidget"/>
+           <widget class="QListWidget" name="tasksListWidget">
+            <property name="focusPolicy">
+             <enum>Qt::FocusPolicy::NoFocus</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -177,21 +190,15 @@ QCalendarWidget QHeaderView {
           </property>
           <item>
            <widget class="QListWidget" name="deadlinesListWidget">
-            <item>
-             <property name="text">
-              <string>Completed hide</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Pomodoro</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Synchronisation and mobile app</string>
-             </property>
-            </item>
+            <property name="focusPolicy">
+             <enum>Qt::FocusPolicy::NoFocus</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
          </layout>
@@ -213,6 +220,9 @@ QCalendarWidget QHeaderView {
              <height>0</height>
             </size>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::FocusPolicy::NoFocus</enum>
+           </property>
            <property name="text">
             <string/>
            </property>
@@ -220,8 +230,27 @@ QCalendarWidget QHeaderView {
          </item>
          <item>
           <widget class="QPushButton" name="newTaskButton">
+           <property name="focusPolicy">
+            <enum>Qt::FocusPolicy::NoFocus</enum>
+           </property>
            <property name="text">
             <string>New Task</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="pomoButton">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::FocusPolicy::NoFocus</enum>
+           </property>
+           <property name="text">
+            <string/>
            </property>
           </widget>
          </item>
@@ -245,6 +274,9 @@ QCalendarWidget QHeaderView {
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QScrollArea" name="scrollArea">
+          <property name="focusPolicy">
+           <enum>Qt::FocusPolicy::NoFocus</enum>
+          </property>
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
@@ -253,8 +285,8 @@ QCalendarWidget QHeaderView {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>66</width>
-             <height>18</height>
+             <width>453</width>
+             <height>562</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -537,59 +569,6 @@ QCalendarWidget QHeaderView {
       </widget>
       <widget class="QWidget" name="settings">
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="2" column="2">
-         <widget class="QGroupBox" name="groupBox_3">
-          <property name="title">
-           <string>Settings</string>
-          </property>
-          <layout class="QVBoxLayout" name="verticalLayout_6">
-           <item>
-            <widget class="QPushButton" name="settingsColorButton">
-             <property name="text">
-              <string>Pick default color...</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="settingsTasksBox">
-             <property name="layoutDirection">
-              <enum>Qt::LayoutDirection::LeftToRight</enum>
-             </property>
-             <property name="text">
-              <string>Show completed tasks</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="settingsLightBox">
-             <property name="text">
-              <string>Light mode</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QCheckBox" name="settingsProfessionalBox">
-             <property name="text">
-              <string>Professional mode</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="0" column="2">
-         <spacer name="verticalSpacer_5">
-          <property name="orientation">
-           <enum>Qt::Orientation::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>229</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
         <item row="2" column="0">
          <spacer name="horizontalSpacer">
           <property name="orientation">
@@ -616,6 +595,26 @@ QCalendarWidget QHeaderView {
           </property>
          </spacer>
         </item>
+        <item row="0" column="2">
+         <spacer name="verticalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>229</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="3" column="2">
+         <widget class="QPushButton" name="settingsDoneButton">
+          <property name="text">
+           <string>Done</string>
+          </property>
+         </widget>
+        </item>
         <item row="4" column="2">
          <spacer name="verticalSpacer_4">
           <property name="orientation">
@@ -629,11 +628,291 @@ QCalendarWidget QHeaderView {
           </property>
          </spacer>
         </item>
-        <item row="3" column="2">
-         <widget class="QPushButton" name="settingsDoneButton">
-          <property name="text">
-           <string>Done</string>
+        <item row="2" column="2">
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string>Settings</string>
           </property>
+          <layout class="QVBoxLayout" name="verticalLayout_6">
+           <item>
+            <widget class="QPushButton" name="settingsColorButton">
+             <property name="text">
+              <string>Pick default color...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="settingsTasksBox">
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string>Show completed tasks</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="settingsLightBox">
+             <property name="text">
+              <string>Performance mode</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="settingsProfessionalBox">
+             <property name="text">
+              <string>Professional mode</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="settingsBreakBox">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>59</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_8">
+               <property name="text">
+                <string>Work dur.</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLabel" name="label_9">
+               <property name="text">
+                <string>Break dur.</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QSpinBox" name="settingsRestBox"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QSpinBox" name="settingsWorkBox">
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>59</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="label_10">
+               <property name="text">
+                <string>Rest cycle</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0" colspan="3">
+              <widget class="QLabel" name="label_11">
+               <property name="text">
+                <string>Rest dur. = break dur. * Rest cycle</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="pomodoro">
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="2" column="1">
+         <spacer name="verticalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>123</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="1">
+         <spacer name="verticalSpacer_7">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>123</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="2">
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>48</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="0">
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>49</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="1">
+         <widget class="QWidget" name="widget" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>300</height>
+           </size>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="3" column="1">
+            <widget class="QToolButton" name="timerTimeButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>40</width>
+               <height>80</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>230</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: 700 48pt &quot;Courier New&quot;;</string>
+             </property>
+             <property name="text">
+              <string>23:41</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1">
+            <spacer name="verticalSpacer_9">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeType">
+              <enum>QSizePolicy::Policy::Fixed</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="6" column="1">
+            <widget class="QPushButton" name="startTimerButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>140</width>
+               <height>70</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>230</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">font: 700 24pt &quot;Courier New&quot;;</string>
+             </property>
+             <property name="text">
+              <string>Start</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <spacer name="horizontalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="6" column="2">
+            <spacer name="horizontalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="2" column="0" colspan="3">
+            <widget class="QLabel" name="timerCycleLabel">
+             <property name="styleSheet">
+              <string notr="true">font: 700 18pt &quot;Courier New&quot;;</string>
+             </property>
+             <property name="text">
+              <string>Hello. World!</string>
+             </property>
+             <property name="scaledContents">
+              <bool>true</bool>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
@@ -653,10 +932,14 @@ QCalendarWidget QHeaderView {
   <tabstop>taskColorButton</tabstop>
   <tabstop>taskDescriptionEdit</tabstop>
   <tabstop>addTaskButton</tabstop>
-  <tabstop>calendarWidget</tabstop>
-  <tabstop>tasksListWidget</tabstop>
-  <tabstop>deadlinesListWidget</tabstop>
-  <tabstop>scrollArea</tabstop>
+  <tabstop>settingsColorButton</tabstop>
+  <tabstop>settingsTasksBox</tabstop>
+  <tabstop>settingsLightBox</tabstop>
+  <tabstop>settingsProfessionalBox</tabstop>
+  <tabstop>settingsWorkBox</tabstop>
+  <tabstop>settingsBreakBox</tabstop>
+  <tabstop>settingsRestBox</tabstop>
+  <tabstop>settingsDoneButton</tabstop>
  </tabstops>
  <resources/>
  <connections/>

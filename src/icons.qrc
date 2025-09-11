@@ -3,5 +3,6 @@
         <file alias="expand">TaskWidget/expand.svg</file>
         <file alias="delete">TaskWidget/delete.svg</file>
         <file alias="settings">TaskWidget/settings.svg</file>
+        <file alias="hourglass">TaskWidget/hourglass.svg</file>
     </qresource>
 </RCC>

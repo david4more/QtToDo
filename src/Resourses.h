@@ -5,6 +5,7 @@
 #include <QMap>
 #include <QMessageBox>
 #include <QDate>
+#include <QRandomGenerator>
 
 namespace Res
 {
@@ -24,9 +25,18 @@ namespace Res
         inline const QString noTasks = "color: gray; font-style: italic; font-size: 14px;";
     }
 
-    namespace Files {
+    namespace File {
         inline const QString tasks = "tasks.json";
         inline const QString prefs = "preferences.json";
+
+        inline const QString tags = "tags";
+        inline const QString defaultColor = "default color";
+        inline const QString completedTasks = "show completed";
+        inline const QString professionalMode = "professional mode";
+        inline const QString lightMode = "light mode";
+        inline const QString pomoWork = "pomo work";
+        inline const QString pomoBreak = "pomo break";
+        inline const QString pomoRestCycle = "pomo rest cycle";
     }
 
     enum class Type { Default = 0, DueTime = 1, Deadline = 2 };
@@ -62,17 +72,50 @@ namespace Res
         return title;
     }
 
-    inline const QStringList noTasksPlaceholders = {
-        "No quests today;\ntake heed and chill thy spirit,\nO mortal of fleeting time.",
-        "No quests call today;\nRest, let thy spirit be chill—\nTime drifts, swift and brief.",
-        "The scroll lies unread;\nchill winds whisper through the trees—\nTrials wait for dawn’s call.",
-        "O wanderer, chill;\nnot all days are meant for strife,\nsome just breathe in peace.",
-        "Your blade may stay still;\nlet the hours drift and chill—\nFate yet bides its time.",
-        "Questless stars above;\nchill night guards thy fleeting soul—\nTomorrow may burn."
-    };
+    namespace Text {
+        inline QString randomText(const QStringList &list) {
+            return list.at(QRandomGenerator::global()->bounded(list.size()));
+        }
+
+        inline const QStringList noTasksPlaceholders = {
+            "No quests today; take heed and chill thy spirit, O mortal of fleeting time.",
+            "No quests call today; Rest, let thy spirit be chill — Time drifts, swift and brief.",
+            "The scroll lies unread; chill winds whisper through the trees — Trials wait for dawn’s call.",
+            "O wanderer, chill; not all days are meant for strife, some just breathe in peace.",
+            "Your blade may stay still; let the hours drift and chill — Fate yet bides its time.",
+            "Questless stars above; chill night guards thy fleeting soul — Tomorrow may burn."
+        };
+
+        inline const QStringList pomoWorkDone = {
+            "Chill thy spirit",
+            "Let thy soul unite with the chill",
+            "Breathe, feel the chilling wind"
+        };
+        inline const QStringList pomoBreakDone = {
+            "Let the wind guide you again",
+            "Follow your soul's desires",
+            "Command and conquer",
+            "Unleash your will",
+            "The quest thrives for your soul"
+        };
+
+        inline const QStringList pomoFirstCycle = {
+            // "Discover the wonder, thrive for your soul's fuel"
+            "First adventure",
+            "Flight's beginning"
+        };
+
+        inline const QStringList pomoLongBreak = {
+            "Willst thou experience the great chill?"
+        };
+
+        inline const QString workEnd = "Work ended";
+        inline const QString breakEnd = "Break ended";
+    }
 
     inline bool lightMode = false;
     inline bool professionalMode = false;
+    inline QColor defaultColor;
 };
 
 #endif // RESOURSES_H
