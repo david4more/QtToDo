@@ -1,11 +1,11 @@
 <RCC>
     <qresource prefix="/icons">
-        <file alias="expand">TaskWidget/expand.svg</file>
-        <file alias="delete">TaskWidget/delete.svg</file>
-        <file alias="settings">TaskWidget/settings.svg</file>
-        <file alias="hourglass">TaskWidget/hourglass.svg</file>
+        <file alias="delete">Files/delete.svg</file>
+        <file alias="expand">Files/expand.svg</file>
+        <file alias="hourglass">Files/hourglass.svg</file>
+        <file alias="settings">Files/settings.svg</file>
     </qresource>
     <qresource prefix="/sound">
-        <file alias="alarm">TaskWidget/alarm.mp3</file>
+        <file alias="alarm">Files/alarm.mp3</file>
     </qresource>
 </RCC>

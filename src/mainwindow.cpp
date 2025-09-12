@@ -80,6 +80,7 @@ void MainWindow::setupUI()
             pomo.audioPlayer.play();
         pomo.audioOutput.setVolume(pomo.alarmVolume);
     });
+    connect(ui->settingsFontButton, &QPushButton::clicked, this, &MainWindow::onPomoFontButton);
 
     ui->settingsTasksBox->setChecked(showCompletedTasks);
     ui->settingsLightBox->setChecked(Res::lightMode);
@@ -114,6 +115,10 @@ void MainWindow::setupUI()
     pomo.audioPlayer.setAudioOutput(&pomo.audioOutput);
     pomo.audioPlayer.setSource(QUrl("qrc:/sound/alarm"));
     pomo.audioOutput.setVolume(pomo.alarmVolume);
+
+    ui->timerCycleLabel->setStyleSheet(Style::timerLabel.arg(pomo.fontFamily));
+    ui->timerTimeButton->setStyleSheet(Style::timerTimeButton.arg(pomo.fontFamily));
+    ui->startTimerButton->setStyleSheet(Style::timerStartButton.arg(pomo.fontFamily));
 }
 
 void MainWindow::saveTasks()
@@ -157,6 +162,7 @@ void MainWindow::savePreferences()
     obj[File::pomoBreak] = pomo.rest;
     obj[File::pomoRestCycle] = pomo.bigRestCycle;
     obj[File::alarmVolume] = std::floor(pomo.alarmVolume * 100.0) / 100.0;
+    obj[File::fontFamily] = pomo.fontFamily;
     QJsonDocument doc(obj);
 
     prefsFile.write(doc.toJson());
@@ -198,10 +204,24 @@ void MainWindow::loadFiles()
         pomo.rest = (obj.contains(File::pomoBreak) ? obj[File::pomoBreak].toInt() : 5);
         pomo.bigRestCycle = (obj.contains(File::pomoRestCycle) ? obj[File::pomoRestCycle].toInt() : 4);
         pomo.alarmVolume = (obj.contains(File::alarmVolume) ? obj[File::alarmVolume].toDouble() : 0.5f);
+        pomo.fontFamily = (obj.contains(File::fontFamily) ? obj[File::fontFamily].toString() : "Courier New");
     }
 }
 
 // Slots
+void MainWindow::onPomoFontButton()
+{
+    QFontDialog dialog(this);
+    dialog.setCurrentFont(QFont(pomo.fontFamily));
+
+    if (dialog.exec() == QDialog::Accepted) {
+        pomo.fontFamily = dialog.selectedFont().family();
+        ui->timerCycleLabel->setStyleSheet(Style::timerLabel.arg(pomo.fontFamily));
+        ui->timerTimeButton->setStyleSheet(Style::timerTimeButton.arg(pomo.fontFamily));
+        ui->startTimerButton->setStyleSheet(Style::timerStartButton.arg(pomo.fontFamily));
+    }
+}
+
 void MainWindow::onTimerTimeButton()
 {
     QDialog dialog(this);

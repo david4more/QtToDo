@@ -23,6 +23,9 @@ namespace Res
         inline const QString background = "background-color: %1;";
         inline const QString task = "border-radius: 2px; background-color: %1;";
         inline const QString noTasks = "color: gray; font-style: italic; font-size: 14px;";
+        inline const QString timerStartButton = "font: 700 24pt %1;";
+        inline const QString timerTimeButton = "font: 700 48pt %1;";
+        inline const QString timerLabel = "font: 700 18pt %1;";
     }
 
     namespace File {
@@ -38,6 +41,7 @@ namespace Res
         inline const QString pomoBreak = "pomo break";
         inline const QString pomoRestCycle = "pomo rest cycle";
         inline const QString alarmVolume = "alarm volume";
+        inline const QString fontFamily = "font";
     }
 
     enum class Type { Default = 0, DueTime = 1, Deadline = 2 };

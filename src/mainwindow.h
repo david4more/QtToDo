@@ -23,6 +23,7 @@
 #include <QFileInfo>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QFontDialog>
 
 class Task;
 class TaskWidget;
@@ -54,6 +55,7 @@ private slots:
     void onStartTimerButton();
     void onTimerTimeout();
     void onTimerTimeButton();
+    void onPomoFontButton();
 
 private:
     Ui::MainWindow *ui;
@@ -89,6 +91,7 @@ private:
         double alarmVolume;
         QMediaPlayer audioPlayer;
         QAudioOutput audioOutput;
+        QString fontFamily;
     } pomo;
     QTimer timer;
 

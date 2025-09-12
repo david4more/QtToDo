@@ -184,6 +184,9 @@
    </item>
    <item>
     <widget class="QWidget" name="expandingWidget" native="true">
+     <property name="styleSheet">
+      <string notr="true">QWidget#expandingWidget { background-color: #1e1e1e; border: 1px solid black; border-radius: 6px;}</string>
+     </property>
      <layout class="QFormLayout" name="formLayout">
       <item row="0" column="0">
        <layout class="QVBoxLayout" name="descriptionLayout">
@@ -250,7 +253,7 @@
          </size>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::FocusPolicy::NoFocus</enum>
+         <enum>Qt::FocusPolicy::StrongFocus</enum>
         </property>
        </widget>
       </item>

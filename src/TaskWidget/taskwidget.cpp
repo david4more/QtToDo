@@ -107,6 +107,7 @@ void TaskWidget::onSaveButton()
     task->setDescription(ui->descriptionText->toPlainText());
     ui->descriptionSaveButton->setVisible(false);
     ui->descriptionCancelButton->setVisible(false);
+    ui->descriptionText->clearFocus();
 }
 
 void TaskWidget::onCancelButton()
@@ -114,11 +115,13 @@ void TaskWidget::onCancelButton()
     ui->descriptionText->setText(task->getDescription());
     ui->descriptionSaveButton->setVisible(false);
     ui->descriptionCancelButton->setVisible(false);
+    ui->descriptionText->clearFocus();
 }
 
 void TaskWidget::onExpandClicked()
 {
     // here lays QPropertyAnimation. It has never stopped jerking. Rest in peace.
+    ui->descriptionText->clearFocus();
     ui->expandingWidget->setVisible(!ui->expandingWidget->isVisible());
 
     QPixmap pix(":/icons/expand");

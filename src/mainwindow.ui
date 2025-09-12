@@ -268,7 +268,7 @@ QCalendarWidget QHeaderView {
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="default_view">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -285,8 +285,8 @@ QCalendarWidget QHeaderView {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>453</width>
-             <height>562</height>
+             <width>66</width>
+             <height>18</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -673,6 +673,13 @@ QCalendarWidget QHeaderView {
             </widget>
            </item>
            <item>
+            <widget class="QPushButton" name="settingsFontButton">
+             <property name="text">
+              <string>Pick Pomo font...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <layout class="QGridLayout" name="gridLayout_3">
              <item row="1" column="1">
               <widget class="QSpinBox" name="settingsBreakBox">
@@ -840,7 +847,7 @@ QCalendarWidget QHeaderView {
               </size>
              </property>
              <property name="styleSheet">
-              <string notr="true">font: 700 48pt &quot;Courier New&quot;;</string>
+              <string notr="true">font: 700 48pt Courier New;</string>
              </property>
              <property name="text">
               <string>23:41</string>
@@ -884,7 +891,7 @@ QCalendarWidget QHeaderView {
               </size>
              </property>
              <property name="styleSheet">
-              <string notr="true">font: 700 24pt &quot;Courier New&quot;;</string>
+              <string notr="true">font: 700 24pt Courier New;</string>
              </property>
              <property name="text">
               <string>Start</string>
