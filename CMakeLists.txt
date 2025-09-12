@@ -28,6 +28,8 @@ add_executable(Thinker
     src/files.qrc
 )
 
+set_target_properties(Thinker PROPERTIES WIN32_EXECUTABLE TRUE)
+
 target_link_libraries(Thinker PRIVATE Qt6::Widgets Qt6::Multimedia)
 
 install(TARGETS Thinker

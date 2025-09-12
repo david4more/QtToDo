@@ -4,6 +4,7 @@
         <file alias="expand">Files/expand.svg</file>
         <file alias="hourglass">Files/hourglass.svg</file>
         <file alias="settings">Files/settings.svg</file>
+        <file alias="lightbulb">Files/lightbulb.svg</file>
     </qresource>
     <qresource prefix="/sound">
         <file alias="alarm">Files/alarm.mp3</file>

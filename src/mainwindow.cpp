@@ -186,6 +186,12 @@ void MainWindow::loadFiles()
 
     // reading preferences
     QFile prefsFile(File::prefs);
+
+    if (!prefsFile.exists() && prefsFile.open(QIODevice::WriteOnly)){
+        prefsFile.write("{}");
+        prefsFile.close();
+    }
+
     if (prefsFile.open(QIODevice::ReadOnly))
     {
         QJsonDocument doc = QJsonDocument::fromJson(prefsFile.readAll());
@@ -273,19 +279,27 @@ void MainWindow::onTimerTimeout()
     pomo.audioPlayer.play();
 
     bool longBreakAccepted = false;
+
+    QMessageBox messageBox;
+    messageBox.setIcon(QMessageBox::NoIcon);
     if (pomo.isWork) {
         if (pomo.cycle >= pomo.bigRestCycle) {
-            QMessageBox messageBox;
             messageBox.setWindowTitle(Text::workEnd);
             messageBox.setText(professionalMode ? "Make a long break?" : Text::randomText(Text::pomoLongBreak));
             QPushButton *yesButton = messageBox.addButton("Yes", QMessageBox::AcceptRole);
             QPushButton *noButton  = messageBox.addButton("Skip", QMessageBox::RejectRole);
             messageBox.exec();
             longBreakAccepted = (messageBox.clickedButton() == yesButton);
-        } else
-            QMessageBox::information(this, Text::workEnd, professionalMode ? "Time for a break" : Text::randomText(Text::pomoWorkDone));
-    } else
-        QMessageBox::information(this, Text::breakEnd, professionalMode ? "Time to work" : Text::randomText(Text::pomoBreakDone));
+        } else {
+            messageBox.setWindowTitle(Text::workEnd);
+            messageBox.setText(professionalMode ? "Time for a break" : Text::randomText(Text::pomoWorkDone));
+            messageBox.exec();
+        }
+    } else {
+        messageBox.setWindowTitle(Text::breakEnd);
+        messageBox.setText(professionalMode ? "Time to work" : Text::randomText(Text::pomoBreakDone));
+        messageBox.exec();
+    }
 
     pomo.audioPlayer.stop();
 
