@@ -655,6 +655,7 @@ void MainWindow::onEditTask(Task* task)
     layout->addWidget(tagsButton);
 
     QPushButton *colorButton = new QPushButton("Pick color...", &dialog);
+    colorButton->setStyleSheet(Style::color.arg(task->getColor()));
     layout->addWidget(colorButton);
 
     layout->addItem(new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Minimum));
@@ -678,8 +679,10 @@ void MainWindow::onEditTask(Task* task)
 
     connect(colorButton, &QPushButton::clicked, &dialog, [&]{
         QColor color = getColor("Select new task's color", task->getColor());
-        if (color.isValid())
+        if (color.isValid()){
             pickedColor = color;
+            colorButton->setStyleSheet(Style::color.arg(pickedColor.name()));
+        }
     });
     connect(doneButton, &QPushButton::clicked, &dialog, [&]{
         task->editProperties(nameEdit->text(), dateTimeEdit->dateTime(), pickedColor, pickedTags);
