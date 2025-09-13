@@ -26,7 +26,6 @@ More screenshots: [Issues → Screenshots](https://github.com/david4more/Thinker
 
 ## Possible improvements
 
-  - save last picked colors
   - notifications
   - mobile version, synchronization
   - use database instead of .json

@@ -57,6 +57,7 @@ private slots:
     void onTimerTimeButton();
     void onPomoFontButton();
     void onEditTask(Task* task);
+    void onResetSettings();
 
 private:
     Ui::MainWindow *ui;

@@ -97,7 +97,7 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
 
 void TaskWidget::onDeleteButton()
 {
-    auto confirmation = QMessageBox::question(this, "Confirm", "Do you want to delete this task?", QMessageBox::Yes | QMessageBox::Cancel);
+    auto confirmation = QMessageBox::question(this, "Confirm", "Do you want to delete this task?", QMessageBox::Cancel | QMessageBox::Yes);
     if (confirmation == QMessageBox::Yes) {
         emit deleteTask(task);
         delete this;

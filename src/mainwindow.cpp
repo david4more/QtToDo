@@ -81,6 +81,7 @@ void MainWindow::setupUI()
         pomo.audioOutput.setVolume(pomo.alarmVolume);
     });
     connect(ui->settingsFontButton, &QPushButton::clicked, this, &MainWindow::onPomoFontButton);
+    connect(ui->settingsResetButton, &QPushButton::clicked, this, &MainWindow::onResetSettings);
 
     ui->settingsTasksBox->setChecked(showCompletedTasks);
     ui->settingsLightBox->setChecked(Res::lightMode);
@@ -98,6 +99,8 @@ void MainWindow::setupUI()
     ui->settingsBreakBox->setValue(pomo.rest);
     ui->settingsRestBox->setValue(pomo.bigRestCycle);
     ui->timerVolumeSlider->setValue(static_cast<int>(pomo.alarmVolume * 100));
+
+    ui->settingsResetButton->setText("Reset settings");
 
     // pomodoro timer
     connect(ui->startTimerButton, &QPushButton::clicked, this, &MainWindow::onStartTimerButton);
@@ -176,6 +179,15 @@ void MainWindow::savePreferences()
 
 void MainWindow::loadFiles()
 {
+    // resetting settings
+    QFile resetFlag("reset.flag");
+    if (resetFlag.exists()) {
+        QFile prefs("preferences.json");
+        if (prefs.exists())
+            prefs.remove();
+        resetFlag.remove();
+    }
+
     // reading tasks
     QFile tasksFile(File::tasks);
     if (tasksFile.open(QIODevice::ReadOnly))
@@ -232,6 +244,28 @@ void MainWindow::loadFiles()
 }
 
 // Slots
+void MainWindow::onResetSettings()
+{
+    QString reset = "Reset settings";
+    QString resetted = "Reset on next launch";
+    if (ui->settingsResetButton->text() == reset)
+    {
+        auto confirmation = QMessageBox::question(this, "Confirm", "Do you want to reset settings?", QMessageBox::Cancel | QMessageBox::Yes);
+        if (confirmation == QMessageBox::Yes) {
+            QFile flag("reset.flag");
+            flag.open(QIODevice::WriteOnly);
+            flag.close();
+            ui->settingsResetButton->setText(resetted);
+        }
+    }
+    else if (ui->settingsResetButton->text() == resetted)
+    {
+        QFile resetFlag("reset.flag");
+        resetFlag.remove();
+        ui->settingsResetButton->setText(reset);
+    }
+}
+
 void MainWindow::onPomoFontButton()
 {
     QFontDialog dialog(this);
