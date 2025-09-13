@@ -100,7 +100,7 @@ private:
     void savePreferences();
     void loadFiles();
 
-    void addTag(const QString &tag);
+    bool isPresent(const Task* task, const QDate& date);
     void updateLeftPanel();
     void updateCalendar();
     void resetTimer();

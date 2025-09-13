@@ -218,7 +218,7 @@ void MainWindow::loadFiles()
 void MainWindow::onPomoFontButton()
 {
     QFontDialog dialog(this);
-    dialog.setCurrentFont(QFont(pomo.fontFamily));
+    dialog.setCurrentFont(QFont(pomo.fontFamily, 36));
 
     if (dialog.exec() == QDialog::Accepted) {
         pomo.fontFamily = dialog.selectedFont().family();
@@ -611,7 +611,7 @@ void MainWindow::updateLeftPanel()
     ui->tasksListWidget->clear();
     ui->deadlinesListWidget->clear();
     for (const auto task : tasks) {
-        if (task->getType() == Type::DueTime && task->getDateTime().date() == QDate::currentDate())
+        if (task->getType() == Type::DueTime && isPresent(task, QDate::currentDate()))
                 ui->tasksListWidget->addItem(task->getName());
         else if (task->getType() == Type::Deadline && ui->deadlinesListWidget->count() < 8) {
             auto currentDate = QDate::currentDate();
@@ -645,28 +645,7 @@ void MainWindow::updateDefaultView()
     QVector<TaskWidget*> deadlinesTasks, dueTasks, defaultTasks;
     for (Task *task : tasks)
     {
-        bool valid;
-        switch (task->getRec())
-        {
-        case Rec::None:
-            valid = (task->getDateTime().date() == pickedDate || task->getType() == Type::Default); break;
-        case Rec::Daily:
-            valid = true; break;
-        case Rec::Weekly:
-            valid = (task->getDateTime().date().dayOfWeek() == pickedDate.dayOfWeek()); break;
-        case Rec::Monthly:
-            valid = (task->getDateTime().date().day() == pickedDate.day()); break;
-        case Rec::Yearly:
-            valid = (task->getDateTime().date().dayOfYear() == pickedDate.dayOfYear()); break;
-        case Rec::CustomDays:
-            valid = (task->getRecDays().contains(static_cast<Qt::DayOfWeek>(pickedDate.dayOfWeek()))); break;
-        case Rec::CustomInterval:
-            valid = (task->getDateTime().date().daysTo(pickedDate) % task->getRecInterval() == 0); break;
-        }
-        if (valid && !showCompletedTasks && task->isCompleted(pickedDate))
-            valid = false;
-
-        if (!valid)
+        if (!isPresent(task, pickedDate) || (!showCompletedTasks && task->isCompleted(pickedDate)))
             continue;
 
         TaskWidget *widget = new TaskWidget(this, task);
@@ -805,6 +784,28 @@ void MainWindow::updateCalendar()
     for (auto day : {Qt::Saturday, Qt::Sunday}) ui->calendarWidget->setWeekdayTextFormat(day, format);
 }
 
+bool MainWindow::isPresent(const Task* task, const QDate& date)
+{
+    bool valid;
+    switch (task->getRec())
+    {
+    case Rec::None:
+        valid = (task->getDateTime().date() == date || task->getType() == Type::Default); break;
+    case Rec::Daily:
+        valid = true; break;
+    case Rec::Weekly:
+        valid = (task->getDateTime().date().dayOfWeek() == date.dayOfWeek()); break;
+    case Rec::Monthly:
+        valid = (task->getDateTime().date().day() == date.day()); break;
+    case Rec::Yearly:
+        valid = (task->getDateTime().date().dayOfYear() == date.dayOfYear()); break;
+    case Rec::CustomDays:
+        valid = (task->getRecDays().contains(static_cast<Qt::DayOfWeek>(date.dayOfWeek()))); break;
+    case Rec::CustomInterval:
+        valid = (task->getDateTime().date().daysTo(date) % task->getRecInterval() == 0); break;
+    }
+    return valid;
+}
 
 
 
