@@ -42,6 +42,7 @@ namespace Res
         inline const QString pomoRestCycle = "pomo rest cycle";
         inline const QString alarmVolume = "alarm volume";
         inline const QString fontFamily = "font";
+        inline const QString customColors = "customColors";
     }
 
     enum class Type { Default = 0, DueTime = 1, Deadline = 2 };

@@ -93,8 +93,9 @@ private:
         QMediaPlayer audioPlayer;
         QAudioOutput audioOutput;
         QString fontFamily;
+        QTimer timer;
     } pomo;
-    QTimer timer;
+    QVector<QColor> customColors;
 
     void setupUI();
     void saveTasks();

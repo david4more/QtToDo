@@ -101,7 +101,7 @@ void MainWindow::setupUI()
 
     // pomodoro timer
     connect(ui->startTimerButton, &QPushButton::clicked, this, &MainWindow::onStartTimerButton);
-    connect(&timer, &QTimer::timeout, this, &MainWindow::onTimerTimeout);
+    connect(&pomo.timer, &QTimer::timeout, this, &MainWindow::onTimerTimeout);
     connect(ui->timerTimeButton, &QPushButton::clicked, this, &MainWindow::onTimerTimeButton);
 
     ui->pomoButton->setFixedSize(QSize(24, 24));
@@ -163,8 +163,12 @@ void MainWindow::savePreferences()
     obj[File::pomoRestCycle] = pomo.bigRestCycle;
     obj[File::alarmVolume] = std::floor(pomo.alarmVolume * 100.0) / 100.0;
     obj[File::fontFamily] = pomo.fontFamily;
-    QJsonDocument doc(obj);
+    QJsonArray arr;
+    for (const QColor &c : customColors)
+        arr.append(c.name());
+    obj[File::customColors] = arr;
 
+    QJsonDocument doc(obj);
     prefsFile.write(doc.toJson());
     if (!prefsFile.commit())
         QMessageBox::critical(this, "File Error", "Failed to save preferences.");
@@ -211,6 +215,19 @@ void MainWindow::loadFiles()
         pomo.bigRestCycle = (obj.contains(File::pomoRestCycle) ? obj[File::pomoRestCycle].toInt() : 4);
         pomo.alarmVolume = (obj.contains(File::alarmVolume) ? obj[File::alarmVolume].toDouble() : 0.5f);
         pomo.fontFamily = (obj.contains(File::fontFamily) ? obj[File::fontFamily].toString() : "Courier New");
+
+        if (obj.contains(File::customColors)) {
+            auto arr = obj[File::customColors].toArray();
+            for (const auto& val : arr)
+                customColors.append(QColor(val.toString()));
+        } else {
+            QVector<QColor> arr = QVector<QColor>(16, QColor(Qt::white));
+            arr[0] = QColor(Color::def);
+            arr[1] = QColor(Color::red);
+            arr[2] = QColor(Color::yellow);
+            arr[3] = QColor(Color::green);
+            customColors = arr;
+        }
     }
 }
 
@@ -260,9 +277,9 @@ void MainWindow::onTimerTimeButton()
 void MainWindow::onStartTimerButton()
 {
     if (!pomo.timerRunning)
-        timer.start(1000);
+        pomo.timer.start(1000);
     else
-        timer.stop();
+        pomo.timer.stop();
 
     pomo.timerRunning = !pomo.timerRunning;
     ui->startTimerButton->setText(pomo.timerRunning ? "Stop" : "Start");
@@ -647,15 +664,14 @@ QColor MainWindow::getColor(QString title, QColor currentColor)
     dialog.setWindowTitle(title);
     dialog.setCurrentColor(currentColor);
 
-    dialog.setCustomColor(0, Color::def);
-    dialog.setCustomColor(1, Color::red);
-    dialog.setCustomColor(2, Color::yellow);
-    dialog.setCustomColor(3, Color::green);
-    dialog.setCustomColor(4, Color::white);
+    customColors.resize(16);
+    for (int i = 0; i < 16; ++i)
+        dialog.setCustomColor(i, customColors[i]);
 
     bool accepted = (dialog.exec() == QDialog::Accepted);
 
-    // save custom colors
+    for (int i = 0; i < 16; ++i)
+        customColors[i] = dialog.customColor(i);
 
     return accepted ? dialog.selectedColor() : QColor();
 }
@@ -823,7 +839,7 @@ void MainWindow::errorStyleTimer(QWidget* widget)
 
 void MainWindow::resetTimer()
 {
-    timer.stop();
+    pomo.timer.stop();
     pomo.init();
     ui->startTimerButton->setText("Start");
     ui->timerTimeButton->setText(pomo.getTime());
