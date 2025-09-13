@@ -58,6 +58,7 @@ private slots:
     void onPomoFontButton();
     void onEditTask(Task* task);
     void onResetSettings();
+    void onDeleteTasks();
 
 private:
     Ui::MainWindow *ui;

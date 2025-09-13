@@ -31,6 +31,8 @@ namespace Res
     namespace File {
         inline const QString tasks = "tasks.json";
         inline const QString prefs = "preferences.json";
+        inline const QString deleteTasks = "delete.flag";
+        inline const QString resetSettings = "reset.flag";
 
         inline const QString tags = "tags";
         inline const QString defaultColor = "default color";
@@ -119,6 +121,11 @@ namespace Res
 
         inline const QString workEnd = "Work ended";
         inline const QString breakEnd = "Break ended";
+
+        inline const QString deleteTasks = "Delete tasks";
+        inline const QString deletedTasks = "Delete on next launch";
+        inline const QString resetSettings = "Reset preferences";
+        inline const QString resettedSettings = "Reset on next launch";
     }
 
     inline bool lightMode = false;

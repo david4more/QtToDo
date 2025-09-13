@@ -82,6 +82,7 @@ void MainWindow::setupUI()
     });
     connect(ui->settingsFontButton, &QPushButton::clicked, this, &MainWindow::onPomoFontButton);
     connect(ui->settingsResetButton, &QPushButton::clicked, this, &MainWindow::onResetSettings);
+    connect(ui->settingsDeleteTasksButton, &QPushButton::clicked, this, &MainWindow::onDeleteTasks);
 
     ui->settingsTasksBox->setChecked(showCompletedTasks);
     ui->settingsLightBox->setChecked(Res::lightMode);
@@ -100,7 +101,8 @@ void MainWindow::setupUI()
     ui->settingsRestBox->setValue(pomo.bigRestCycle);
     ui->timerVolumeSlider->setValue(static_cast<int>(pomo.alarmVolume * 100));
 
-    ui->settingsResetButton->setText("Reset settings");
+    ui->settingsResetButton->setText(Text::resetSettings);
+    ui->settingsDeleteTasksButton->setText(Text::deleteTasks);
 
     // pomodoro timer
     connect(ui->startTimerButton, &QPushButton::clicked, this, &MainWindow::onStartTimerButton);
@@ -180,12 +182,19 @@ void MainWindow::savePreferences()
 void MainWindow::loadFiles()
 {
     // resetting settings
-    QFile resetFlag("reset.flag");
+    QFile resetFlag(File::resetSettings);
     if (resetFlag.exists()) {
-        QFile prefs("preferences.json");
+        QFile prefs(File::prefs);
         if (prefs.exists())
             prefs.remove();
         resetFlag.remove();
+    }
+    QFile deleteFlag(File::deleteTasks);
+    if (deleteFlag.exists()) {
+        QFile tasks(File::tasks);
+        if (tasks.exists())
+            tasks.remove();
+        deleteFlag.remove();
     }
 
     // reading tasks
@@ -244,25 +253,43 @@ void MainWindow::loadFiles()
 }
 
 // Slots
+void MainWindow::onDeleteTasks()
+{
+    if (ui->settingsDeleteTasksButton->text() == Text::deleteTasks)
+    {
+        auto confirmation = QMessageBox::question(this, "Confirm", "Do you want to delete all tasks?", QMessageBox::Cancel | QMessageBox::Yes);
+        if (confirmation == QMessageBox::Yes) {
+            QFile flag(File::deleteTasks);
+            flag.open(QIODevice::WriteOnly);
+            flag.close();
+            ui->settingsDeleteTasksButton->setText(Text::deletedTasks);
+        }
+    }
+    else if (ui->settingsDeleteTasksButton->text() == Text::deletedTasks)
+    {
+        QFile deleteFlag(File::deleteTasks);
+        deleteFlag.remove();
+        ui->settingsDeleteTasksButton->setText(Text::deleteTasks);
+    }
+}
+
 void MainWindow::onResetSettings()
 {
-    QString reset = "Reset settings";
-    QString resetted = "Reset on next launch";
-    if (ui->settingsResetButton->text() == reset)
+    if (ui->settingsResetButton->text() == Text::resetSettings)
     {
         auto confirmation = QMessageBox::question(this, "Confirm", "Do you want to reset settings?", QMessageBox::Cancel | QMessageBox::Yes);
         if (confirmation == QMessageBox::Yes) {
-            QFile flag("reset.flag");
+            QFile flag(File::resetSettings);
             flag.open(QIODevice::WriteOnly);
             flag.close();
-            ui->settingsResetButton->setText(resetted);
+            ui->settingsResetButton->setText(Text::resettedSettings);
         }
     }
-    else if (ui->settingsResetButton->text() == resetted)
+    else if (ui->settingsResetButton->text() == Text::resettedSettings)
     {
-        QFile resetFlag("reset.flag");
+        QFile resetFlag(File::resetSettings);
         resetFlag.remove();
-        ui->settingsResetButton->setText(reset);
+        ui->settingsResetButton->setText(Text::resetSettings);
     }
 }
 

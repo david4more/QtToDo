@@ -285,8 +285,8 @@ QCalendarWidget QHeaderView {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>453</width>
-             <height>562</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <property name="sizePolicy">
@@ -569,14 +569,14 @@ QCalendarWidget QHeaderView {
       </widget>
       <widget class="QWidget" name="settings">
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="2" column="3">
-         <spacer name="horizontalSpacer_4">
+        <item row="2" column="0">
+         <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>104</width>
+            <width>105</width>
             <height>20</height>
            </size>
           </property>
@@ -595,23 +595,10 @@ QCalendarWidget QHeaderView {
           </property>
          </spacer>
         </item>
-        <item row="5" column="2">
-         <spacer name="verticalSpacer_4">
-          <property name="orientation">
-           <enum>Qt::Orientation::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>228</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="3" column="2">
-         <widget class="QPushButton" name="settingsDoneButton">
+        <item row="4" column="2">
+         <widget class="QPushButton" name="settingsResetButton">
           <property name="text">
-           <string>Done</string>
+           <string>Reset preferences</string>
           </property>
          </widget>
         </item>
@@ -748,23 +735,43 @@ QCalendarWidget QHeaderView {
           </layout>
          </widget>
         </item>
-        <item row="2" column="0">
-         <spacer name="horizontalSpacer">
+        <item row="6" column="2">
+         <spacer name="verticalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>228</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="3" column="2">
+         <widget class="QPushButton" name="settingsDoneButton">
+          <property name="text">
+           <string>Done</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="3">
+         <spacer name="horizontalSpacer_4">
           <property name="orientation">
            <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>105</width>
+            <width>104</width>
             <height>20</height>
            </size>
           </property>
          </spacer>
         </item>
-        <item row="4" column="2">
-         <widget class="QPushButton" name="settingsResetButton">
+        <item row="5" column="2">
+         <widget class="QPushButton" name="settingsDeleteTasksButton">
           <property name="text">
-           <string>Reset settings</string>
+           <string>Delete all tasks</string>
           </property>
          </widget>
         </item>
