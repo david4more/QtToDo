@@ -24,6 +24,7 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     connect(ui->descriptionSaveButton, &QToolButton::clicked, this, &TaskWidget::onSaveButton);
     connect(ui->deleteButton, &QToolButton::clicked, this, &TaskWidget::onDeleteButton);
     connect(ui->descriptionCancelButton, &QToolButton::clicked, this, &TaskWidget::onCancelButton);
+    connect(ui->editButton, &QToolButton::clicked, this, [task, this]{ emit editTask(task); });
 
     taskCompleted = task->isCompleted(currentDate);
 
@@ -33,6 +34,7 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
     ui->line->setStyleSheet(Res::Style::task.arg(task->getColor()));
     ui->expandButton->setIcon(QIcon(":/icons/expand"));
     ui->deleteButton->setIcon(QIcon(":/icons/delete"));
+    ui->editButton->setIcon(QIcon(":/icons/edit"));
     ui->descriptionText->setText(task->getDescription());
 
     QString text;
@@ -96,7 +98,7 @@ TaskWidget::TaskWidget(QWidget *parent, Task *task)
 void TaskWidget::onDeleteButton()
 {
     auto confirmation = QMessageBox::question(this, "Confirm", "Do you want to delete this task?", QMessageBox::Yes | QMessageBox::Cancel);
-    if (confirmation == QMessageBox::Yes){
+    if (confirmation == QMessageBox::Yes) {
         emit deleteTask(task);
         delete this;
     }

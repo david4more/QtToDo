@@ -56,6 +56,7 @@ private slots:
     void onTimerTimeout();
     void onTimerTimeButton();
     void onPomoFontButton();
+    void onEditTask(Task* task);
 
 private:
     Ui::MainWindow *ui;
@@ -100,6 +101,7 @@ private:
     void savePreferences();
     void loadFiles();
 
+    QColor getColor(QString title, QColor currentColor);
     bool isPresent(const Task* task, const QDate& date);
     void updateLeftPanel();
     void updateCalendar();

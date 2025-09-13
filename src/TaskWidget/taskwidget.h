@@ -25,6 +25,7 @@ public:
 
 signals:
     void deleteTask(Task* task);
+    void editTask(Task* task);
 
 private slots:
     void onBoxChecked(bool checked);

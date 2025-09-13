@@ -29,6 +29,7 @@ void MainWindow::setupUI()
     connect(ui->calendarWidget, &QCalendarWidget::clicked, this, &MainWindow::onDateClick);
     connect(ui->newTaskButton, &QPushButton::clicked, this, &MainWindow::onNewTaskButton);
     connect(ui->pomoButton, &QPushButton::clicked, this, [this](){ if (state != State::pomodoro) changeState(State::pomodoro); else changeState(State::default_view); });
+    connect(ui->settingsButton, &QToolButton::clicked, this, [this](){ changeState((state == State::settings) ? State::default_view : State::settings); });
 
     ui->calendarWidget->findChild<QToolButton*>("qt_calendar_prevmonth")->hide();
     ui->calendarWidget->findChild<QToolButton*>("qt_calendar_nextmonth")->hide();
@@ -73,7 +74,6 @@ void MainWindow::setupUI()
     connect(ui->settingsLightBox, &QCheckBox::clicked, this, [this](bool checked){ Res::lightMode = checked; } );
     connect(ui->settingsProfessionalBox, &QCheckBox::clicked, this, [this](bool checked){ Res::professionalMode = checked; } );
     connect(ui->settingsDoneButton, &QPushButton::clicked, this, [this](){ changeState((state == State::settings) ? State::default_view : State::settings); });
-    connect(ui->settingsButton, &QToolButton::clicked, this, [this](){ changeState((state == State::settings) ? State::default_view : State::settings); });
     connect(ui->timerVolumeSlider, &QSlider::valueChanged, this, [this](int value){
         pomo.alarmVolume = value / 100.f;
         if (pomo.audioPlayer.playbackState() != QMediaPlayer::PlayingState)
@@ -550,21 +550,12 @@ void MainWindow::onPickTagsButton()
 
 void MainWindow::onPickColorButton()
 {
-    QColorDialog dialog(this);
-    dialog.setWindowTitle("Choose task's color");
-    dialog.setCurrentColor(defaultColor);
-
-    dialog.setCustomColor(0, Color::def);
-    dialog.setCustomColor(1, Color::red);
-    dialog.setCustomColor(2, Color::yellow);
-    dialog.setCustomColor(3, Color::green);
-    dialog.setCustomColor(4, Color::white);
-
-    if (dialog.exec() != QDialog::Accepted)
+    QColor color = getColor("Choose task's color", defaultColor);
+    if (!color.isValid())
         return;
 
-    ui->taskColorButton->setProperty("color", dialog.selectedColor().name());
-    ui->taskColorButton->setStyleSheet(Style::color.arg(dialog.selectedColor().name()));
+    ui->taskColorButton->setProperty("color", color.name());
+    ui->taskColorButton->setStyleSheet(Style::color.arg(color.name()));
 }
 
 void MainWindow::onDateClick(const QDate &date)
@@ -585,9 +576,76 @@ void MainWindow::onNewTaskButton()
 
 void MainWindow::onSettingsColorButton()
 {
+    QColor color = getColor("Choose default color", defaultColor);
+    if (!color.isValid())
+        return;
+
+    defaultColor = color;
+    ui->settingsColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
+
+    updateCalendar();
+}
+
+void MainWindow::onEditTask(Task* task)
+{
+    QDialog dialog(this);
+    dialog.setWindowTitle("Edit task");
+
+    // name, tags, time, color
+    QVBoxLayout *layout = new QVBoxLayout(&dialog);
+
+    QLineEdit *nameEdit = new QLineEdit(task->getName(), &dialog);
+    layout->addWidget(nameEdit);
+
+    QDateTimeEdit *dateTimeEdit = new QDateTimeEdit(task->getDateTime(), &dialog);
+    layout->addWidget(dateTimeEdit);
+
+    QPushButton *tagsButton = new QPushButton("Pick tags...", &dialog);
+    layout->addWidget(tagsButton);
+
+    QPushButton *colorButton = new QPushButton("Pick color...", &dialog);
+    layout->addWidget(colorButton);
+
+    layout->addItem(new QSpacerItem(20, 10, QSizePolicy::Minimum, QSizePolicy::Minimum));
+    QPushButton *doneButton = new QPushButton("Save", &dialog);
+    layout->addWidget(doneButton);
+
+    QColor pickedColor = task->getColor();
+    QVector<QString> pickedTags = task->getTags();
+
+    connect(tagsButton, &QPushButton::clicked, &dialog, [&]{
+        for (auto it = tags.begin(); it != tags.end(); ++it) {
+            it.value() = task->getTags().contains(it.key());
+        }
+        onPickTagsButton();
+
+        pickedTags.clear();
+        for (auto it = tags.begin(); it != tags.end(); ++it)
+            if (it.value())
+                pickedTags.push_back(it.key());
+    });
+
+    connect(colorButton, &QPushButton::clicked, &dialog, [&]{
+        QColor color = getColor("Select new task's color", task->getColor());
+        if (color.isValid())
+            pickedColor = color;
+    });
+    connect(doneButton, &QPushButton::clicked, &dialog, [&]{
+        task->editProperties(nameEdit->text(), dateTimeEdit->dateTime(), pickedColor, pickedTags);
+        updateDefaultView();
+        dialog.accept();
+    });
+
+    doneButton->setDefault(true);
+    dialog.exec();
+}
+
+// Helper functions
+QColor MainWindow::getColor(QString title, QColor currentColor)
+{
     QColorDialog dialog(this);
-    dialog.setWindowTitle("Choose default color");
-    dialog.setCurrentColor(defaultColor);
+    dialog.setWindowTitle(title);
+    dialog.setCurrentColor(currentColor);
 
     dialog.setCustomColor(0, Color::def);
     dialog.setCustomColor(1, Color::red);
@@ -595,17 +653,13 @@ void MainWindow::onSettingsColorButton()
     dialog.setCustomColor(3, Color::green);
     dialog.setCustomColor(4, Color::white);
 
+    bool accepted = (dialog.exec() == QDialog::Accepted);
 
-    if (dialog.exec() != QDialog::Accepted)
-        return;
+    // save custom colors
 
-    defaultColor = dialog.selectedColor();
-    ui->settingsColorButton->setStyleSheet(Style::color.arg(defaultColor.name()));
-
-    updateCalendar();
+    return accepted ? dialog.selectedColor() : QColor();
 }
 
-// Helper functions
 void MainWindow::updateLeftPanel()
 {
     ui->tasksListWidget->clear();
@@ -650,6 +704,7 @@ void MainWindow::updateDefaultView()
 
         TaskWidget *widget = new TaskWidget(this, task);
         connect(widget, &TaskWidget::deleteTask, this, [this](Task* task){ tasks.removeOne(task); delete task; updateDefaultView(); });
+        connect(widget, &TaskWidget::editTask, this, &MainWindow::onEditTask);
 
         switch (task->getType()) {
         case Type::Default:
@@ -741,8 +796,6 @@ void MainWindow::changeState(State state)
         ui->newTaskButton->setText("New Task");
         break;
     case State::settings:
-        ui->newTaskButton->setText("Default View");
-        break;
     case State::pomodoro:
         ui->newTaskButton->setText("Default View");
         break;

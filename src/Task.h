@@ -107,11 +107,14 @@ public:
         }
     }
 
-    void addTag(const QString &tag) { if (!tags.contains(tag)) tags.append(tag); }
-
-    void removeTag(const QString &tag) { tags.removeAll(tag); }
-
     void setDescription(const QString &text) { description = text; }
+
+    void editProperties(QString newName, QDateTime newDateTime, QColor newColor, QVector<QString> newTags) {
+        name = newName;
+        time = newDateTime;
+        color = newColor;
+        tags = newTags;
+    }
 
     // info/getters
     bool isCompleted(const QDate &currentDate) const {
