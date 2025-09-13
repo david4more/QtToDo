@@ -19,7 +19,7 @@ A simple Qt Widgets To-Do List app, built with Qt Creator.
 ![Default view](https://github.com/user-attachments/assets/ab7f56b3-d753-4354-9070-a52da1c5f293)
 ![Tasks expanded](https://github.com/user-attachments/assets/f84e0448-078d-41b4-b385-8edc95298154)
 ![Pomodoro](https://github.com/user-attachments/assets/7fb97fe3-7ab3-447a-90ca-588f93ff526a)
-![Settings](https://github.com/user-attachments/assets/5b643bbb-2c74-4b55-925d-32bc2c044d0f)
+![Settings](https://github.com/user-attachments/assets/44a75d64-4fc9-4f64-acd8-c8fd8f6c261e)
 ![Custom recurrence](https://github.com/user-attachments/assets/b4f1b8cd-5e2c-467c-a738-600b29e468f2)
 
 More screenshots: [Issues → Screenshots](https://github.com/david4more/Thinker/issues/1)
